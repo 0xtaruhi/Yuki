@@ -1,0 +1,7 @@
+# CMAKE
+.cache
+build
+
+# VSCODE
+.vscode
+.VSCodeCounter
