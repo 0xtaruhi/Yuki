@@ -5,3 +5,6 @@ build
 # VSCODE
 .vscode
 .VSCodeCounter
+
+# MAC
+.DS_Store
