@@ -30,7 +30,8 @@ void Yuki::run() {
       if (event_.type == sf::Event::Closed) {
         window_->close();
       } else if (event_.type == sf::Event::Resized) {
-        map_.adjustScaleToWindow();
+        // commented following line because the map has auto adjusted
+        // map_.adjustScaleToWindow();
       }
     }
     update();
