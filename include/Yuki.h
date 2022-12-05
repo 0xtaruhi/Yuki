@@ -22,17 +22,11 @@ class Yuki {
 
   void update();
 
-  constexpr auto getWindowWidth() const { return window_width_; }
-  constexpr auto getWindowHeight() const { return window_height_; }
-
  private:
   WindowHandler window_;
   sf::Event event_;
   Map map_;
   NormalSoldier test_soldier_;
-
-  int window_width_;
-  int window_height_;
 };
 
 };  // namespace yuki

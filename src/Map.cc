@@ -60,30 +60,27 @@ void Map::setScale(const sf::Vector2f& scale) { scale_ = scale; }
 
 sf::RectangleShape Map::getShapeByTile(const tmx::TileLayer::Tile& tile) const {
   sf::RectangleShape temp_rec;
-  temp_rec.setSize(sf::Vector2f(tile_size_.x, tile_size_.y));
+  temp_rec.setSize(sf::Vector2f(tile_size_.x * scale_.x, tile_size_.y * scale_.y));
   temp_rec.setTexture(textures_[tile.ID - 1].get());
   doFlip(tile, temp_rec);
-  temp_rec.setScale(scale_);
   return temp_rec;
 }
 
 void Map::doFlip(const tmx::TileLayer::Tile& tile,
                  sf::RectangleShape& shape) const {
   const auto& flip_type = tile.flipFlags;
+  shape.setOrigin(shape.getSize().x / 2, shape.getSize().y / 2);
 
   auto doXFlip = [&shape]() {
     shape.setScale(-1, 1);
-    // shape.setOrigin(shape.getSize().x, 0);
   };
 
   auto doYFlip = [&shape]() {
     shape.setScale(1, -1);
-    // shape.setOrigin(0, shape.getSize().y);
   };
 
   auto doDFlip = [&shape]() {
     shape.setScale(-1, -1);
-    // shape.setOrigin(shape.getSize().x, shape.getSize().y);
   };
 
   if (!(flip_type & tmx::TileLayer::FlipFlag::Horizontal) &&
@@ -131,4 +128,5 @@ void Map::doFlip(const tmx::TileLayer::Tile& tile,
     doYFlip();
     doDFlip();
   }
+  shape.setOrigin(0, 0);
 }
