@@ -11,6 +11,10 @@ void YukiScene::show() {
     while (window_.pollEvent(event)) {
       processEvent(event);
     }
+    if (notify_ == Notify::End) {
+      break;
+    }
+    notify_ = Notify::None;
     window_.clear();
     draw();
     window_.display();

@@ -2,6 +2,7 @@
 #define INTERACTIVE_OBJECT_HPP
 
 #include <SFML/Graphics.hpp>
+#include <functional>
 
 #define TOUCHABLE_OBJECT \
   virtual bool inRange(const sf::Vector2f& position) const override;
@@ -10,13 +11,38 @@ namespace yuki {
 
 class Touchable {
  public:
+  using Callback = std::function<void()>;
+
   Touchable() = default;
   virtual ~Touchable() {}
 
-  virtual void onRelease() {}
-  virtual void onClick() {}
-  virtual void onHover() {}
-  virtual void onLeave() {}
+  virtual void onRelease() { on_releaseCallback_(); }
+  virtual void onClick() { on_clickCallback_(); }
+  virtual void onHover() { on_hoverCallback_(); }
+  virtual void onLeave() { on_leaveCallback_(); }
+
+  enum class Action { Click, Release, Hover, Leave };
+  void bindAction(const Action action, Callback callback) {
+    switch (action) {
+      case Action::Click:
+        on_clickCallback_ = callback;
+        break;
+      case Action::Release:
+        on_releaseCallback_ = callback;
+        break;
+      case Action::Hover:
+        on_hoverCallback_ = callback;
+        break;
+      case Action::Leave:
+        on_leaveCallback_ = callback;
+        break;
+    }
+  }
+
+  void bindClick(Callback callback) { on_clickCallback_ = callback; }
+  void bindRelease(Callback callback) { on_releaseCallback_ = callback; }
+  void bindHover(Callback callback) { on_hoverCallback_ = callback; }
+  void bindLeave(Callback callback) { on_leaveCallback_ = callback; }
 
   virtual bool inRange(const sf::Vector2f& position) const = 0;
 
@@ -51,6 +77,11 @@ class Touchable {
  protected:
   bool is_clicked_ = false;
   bool is_hovered_ = false;
+
+  Callback on_clickCallback_ = []() {};
+  Callback on_releaseCallback_ = []() {};
+  Callback on_hoverCallback_ = []() {};
+  Callback on_leaveCallback_ = []() {};
 };
 
 }  // namespace yuki

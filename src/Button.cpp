@@ -65,18 +65,18 @@ bool Button::inRange(const Vector2f& position) const {
   return shape_.getGlobalBounds().contains(position);
 }
 
-void Button::onClick() {
-  shape_.setFillColor(Color::Blue);
-}
+// void Button::onClick() {
+//   shape_.setFillColor(Color::Blue);
+// }
 
-void Button::onRelease() {
-  shape_.setFillColor(Color::White);
-}
+// void Button::onRelease() {
+//   shape_.setFillColor(Color::White);
+// }
 
-void Button::onHover() {
-  shape_.setFillColor(Color::Green);
-}
+// void Button::onHover() {
+//   shape_.setFillColor(Color::Green);
+// }
 
-void Button::onLeave() {
-  shape_.setFillColor(Color::White);
-}
+// void Button::onLeave() {
+//   shape_.setFillColor(Color::White);
+// }

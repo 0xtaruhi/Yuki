@@ -2,9 +2,11 @@
 #define BUTTON_HPP
 
 #include <SFML/Graphics.hpp>
+#include <functional>
 
 #include "InteractiveObject.hpp"
 #include "YukiScene.hpp"
+
 
 namespace yuki {
 
@@ -20,17 +22,13 @@ class Button : public sf::Drawable, public Touchable {
   template <typename... Args>
   Button(YukiScene& scene, Args&&... args)
       : Button(std::forward<Args>(args)...) {
-    scene.registerTouchableObject(std::make_shared<Button>(*this));
+    scene.registerTouchableObject(std::shared_ptr<Touchable>(this));
   }
 
   virtual ~Button();
 
   // Interact
   TOUCHABLE_OBJECT
-  virtual void onClick() override;
-  virtual void onRelease() override;
-  virtual void onHover() override;
-  virtual void onLeave() override;
 
   // Background
   void setSize(const sf::Vector2f& size) {
@@ -57,7 +55,10 @@ class Button : public sf::Drawable, public Touchable {
     shape_.setOutlineThickness(thickness);
   }
 
-  void setOrigin(const sf::Vector2f& origin) { shape_.setOrigin(origin); }
+  void setOrigin(const sf::Vector2f& origin) {
+    shape_.setOrigin(origin);
+    text_.setOrigin(origin);
+  }
   const auto getOrigin() const { return shape_.getOrigin(); }
 
   void setTexture(const sf::Texture* texture) { shape_.setTexture(texture); }
@@ -67,7 +68,7 @@ class Button : public sf::Drawable, public Touchable {
 
   // Text
   void setString(const sf::String& text) { text_.setString(text); }
-  const auto getString() const { text_.getString(); }
+  const auto getString() const { return text_.getString(); }
   void setTextSize(unsigned int size) { text_.setCharacterSize(size); }
   void setTextFont(const sf::Font& font) { text_.setFont(font); }
   void setTextFillColor(const sf::Color& color) { text_.setFillColor(color); }
@@ -87,7 +88,7 @@ class Button : public sf::Drawable, public Touchable {
   virtual void draw(sf::RenderTarget& target,
                     sf::RenderStates states) const override;
 
- private:
+ protected:
   sf::RectangleShape shape_;
   sf::Text text_;
 

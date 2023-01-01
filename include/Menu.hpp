@@ -26,6 +26,17 @@ class Menu : public sf::Drawable {
 
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
+  Button& operator[](unsigned int index) { return *menu_items_[index]; }
+  Button& getByName(const sf::String& name) {
+    for (auto& item : menu_items_) {
+      if (item->getString() == name) {
+        return *item;
+      }
+    }
+    throw std::runtime_error("Menu item not found");
+    return *menu_items_[0];
+  }
+
  private:
   std::vector<std::unique_ptr<yuki::Button>> menu_items_;
   Layout layout_;

@@ -15,8 +15,16 @@ class StartupScene : public YukiScene {
   void show() override;
 
   void draw() const override;
+ 
+ protected:
+  void processEvent(sf::Event event) override;
+
  private:
-  Menu menu_;
+  Button btn_start_;
+  sf::Sprite background_;
+  sf::Texture background_texture_;
+
+  void initUi();
 };
 
 }  // namespace yuki

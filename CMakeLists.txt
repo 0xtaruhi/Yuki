@@ -41,6 +41,9 @@ set (PROJECT_SRC
   src/InputProcessEngine.cpp
   src/Elementum.cpp
   src/StatusBar.cpp
+  src/Menu.cpp
+  src/YukiScene.cpp
+  src/StartupScene.cpp
 )
 
 if (WIN32)
