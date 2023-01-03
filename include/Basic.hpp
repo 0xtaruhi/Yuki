@@ -5,6 +5,10 @@
 #include <iostream>
 
 namespace yuki {
+
+constexpr auto kWindowWidth = 960;
+constexpr auto kWindowHeight = 640;
+
 enum class Direction { Down = 0, Left, Right, Up, Other };
 
 namespace GameFont {

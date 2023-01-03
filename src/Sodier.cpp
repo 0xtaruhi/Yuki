@@ -5,15 +5,18 @@
 using namespace yuki;
 using namespace sf;
 
+bool Sodier::inRange(const Vector2f& target) const {
+  return sprite_.getGlobalBounds().contains(target);
+}
+
 void Sodier::update() {
   if (is_moving_) {
     sprite_.move(getVectorSpeed(direction_, speed_));
   }
-  health_bar_.setPosition(
-      {sprite_.getPosition().x, sprite_.getPosition().y - 15});
-  health_bar_.setMaxValue(100);
-  health_bar_.setCurrentValue(100);
-  health_bar_.setSize(Vector2f{sprite_.getGlobalBounds().width, 5});
+  // health_bar_.setPosition(
+  //     {sprite_.getPosition().x, sprite_.getPosition().y - 15});
+  health_bar_.setPosition({sprite_.getPosition().x + health_bar_offset_.x,
+                           sprite_.getPosition().y + health_bar_offset_.y});
 }
 
 NormalSodier::NormalSodier() : Sodier() {

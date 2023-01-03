@@ -19,16 +19,16 @@ class Button : public sf::Drawable, public Touchable {
   Button(const sf::String& text, const Alignment alignment = Alignment::Center);
   Button(const sf::Vector2f& size, const sf::String& text,
          const Alignment Alignment = Alignment::Center);
-  template <typename... Args>
-  Button(YukiScene& scene, Args&&... args)
-      : Button(std::forward<Args>(args)...) {
-    scene.registerTouchableObject(std::shared_ptr<Touchable>(this));
-  }
+  // template <typename... Args>
+  // Button(YukiScene& scene, Args&&... args)
+  //     : Button(std::forward<Args>(args)...) {
+  //   scene.registerTouchableObject(std::shared_ptr<Touchable>(this));
+  // }
 
   virtual ~Button();
 
   // Interact
-  TOUCHABLE_OBJECT
+  TOUCHABLE_OBJECT(Button)
 
   // Background
   void setSize(const sf::Vector2f& size) {

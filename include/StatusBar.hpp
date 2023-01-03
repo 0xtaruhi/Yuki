@@ -35,7 +35,7 @@ class StatusBar : public sf::Drawable {
   void setBackgroudColor(const sf::Color color) { background_.setFillColor(color); }
   void setFilledColor(const sf::Color color) { filled_.setFillColor(color); }
   void setMaxValue(const float max_value) { max_value_ = max_value; }
-  void setCurrentValue(const float current_value) {
+  void setValue(const float current_value) {
     current_value_ = current_value;
     updateFilledPercentage();
   }
@@ -62,18 +62,12 @@ class StatusBar : public sf::Drawable {
 
   const auto getBackgroundColor() const { return background_.getFillColor(); }
   const auto getFilledColor() const { return filled_.getFillColor(); }
-  const auto getMaxValue() const { return max_value_; }
-  const auto getCurrentValue() const { return current_value_; }
+  constexpr auto getMaxValue() const { return max_value_; }
+  constexpr auto getCurrentValue() const { return current_value_; }
   const auto getPosition() const { return position_; }
 
-  void increase(const float value) {
-    current_value_ += value;
-    updateFilledPercentage();
-  }
-  void decrease(const float value) {
-    current_value_ -= value;
-    updateFilledPercentage();
-  }
+  void increase(const float value);
+  void decrease(const float value);
 
   virtual ~StatusBar() {}
 
@@ -84,7 +78,7 @@ class StatusBar : public sf::Drawable {
     setFilledPercentage(current_value_ / max_value_);
   }
 
- private:
+ protected:
   sf::RectangleShape background_;
   sf::RectangleShape filled_;
 
@@ -97,6 +91,7 @@ class StatusBar : public sf::Drawable {
   bool visible_;
 
   void setFilledPercentage(float percentage);
+  void adjustIfOverflow();
 };
 
 inline auto getHealthBar(const sf::Vector2f& size = {30.f, 5.f}) {

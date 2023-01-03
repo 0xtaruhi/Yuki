@@ -9,15 +9,10 @@
 namespace yuki {
 
 class StartupScene : public YukiScene {
+ YUKI_SCENE
  public:
   StartupScene(sf::RenderWindow& window);
-
-  void show() override;
-
-  void draw() const override;
- 
- protected:
-  void processEvent(sf::Event event) override;
+  virtual ~StartupScene() {}
 
  private:
   Button btn_start_;

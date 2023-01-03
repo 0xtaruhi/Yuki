@@ -44,6 +44,8 @@ set (PROJECT_SRC
   src/Menu.cpp
   src/YukiScene.cpp
   src/StartupScene.cpp
+  src/MainScene.cpp
+  src/Map.cpp
 )
 
 if (WIN32)

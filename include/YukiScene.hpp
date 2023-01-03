@@ -7,18 +7,26 @@
 
 namespace yuki {
 
+#define YUKI_SCENE                             \
+ public:                                       \
+  int show() override;                         \
+                                               \
+ protected:                                    \
+  void processEvent(sf::Event event) override; \
+  void draw() const override;                  \
+  void updateInfo() override;                  \
+                                               \
+ public:
+
 // Abstract class for all scenes
 class YukiScene {
  public:
-  enum class Notify {
-    None,
-    End
-  };
+  enum class Notify { None, End };
 
   YukiScene(sf::RenderWindow& window) : window_(window) {}
   virtual ~YukiScene();
 
-  virtual void show();
+  virtual int show();
 
  protected:
   yuki::MouseEventProcessEngine mouse_event_engine_;
@@ -31,7 +39,7 @@ class YukiScene {
   sf::RenderWindow& window_;
   virtual void processEvent(sf::Event event);
   virtual void draw() const = 0;
-
+  virtual void updateInfo() = 0;
 };
 
 }  // namespace yuki
