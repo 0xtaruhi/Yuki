@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_CXX_COMPILER E:/Project/Yuki/deps/mingw64/bin/g++.exe)
-
 # set the default build type to Release
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release
@@ -23,7 +21,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 set(SFML_STATIC_LIBRARIES TRUE)
-set(SFML_DIR E:/Project/Yuki/deps/SFML-2.5.1/lib/cmake/SFML)
+set(SFML_DIR deps/SFML-2.5.1/lib/cmake/SFML)
 
 find_package(SFML 2.5.1 COMPONENTS graphics audio REQUIRED)
 
