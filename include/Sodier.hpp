@@ -54,6 +54,10 @@ class Sodier : public sf::Drawable, public Touchable {
   void increaseHealth(const float health) { health_bar_.increase(health); }
   void decreaseHealth(const float health) { health_bar_.decrease(health); }
 
+  void setColor(const sf::Color& color) {
+    sprite_.setColor(color);
+  }
+
  protected:
   // sf::Sprite sprite_;
   sf::Sprite sprite_;

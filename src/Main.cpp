@@ -4,7 +4,6 @@
 #include "MainScene.hpp"
 #include "StartupScene.hpp"
 
-
 using namespace yuki;
 
 int main() {

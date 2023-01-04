@@ -4,10 +4,10 @@
 #include <SFML/Graphics.hpp>
 #include <functional>
 
-#define TOUCHABLE_OBJECT(OBJECT_NAME)                                      \
- private:                                                                  \
-  virtual bool inRange(const sf::Vector2f& position) const override;       \
-                                                                           \
+#define TOUCHABLE_OBJECT(OBJECT_NAME)                                \
+ private:                                                            \
+  virtual bool inRange(const sf::Vector2f& position) const override; \
+                                                                     \
  public:
 
 namespace yuki {

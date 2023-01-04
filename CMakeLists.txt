@@ -43,7 +43,9 @@ set (PROJECT_SRC
   src/YukiScene.cpp
   src/StartupScene.cpp
   src/MainScene.cpp
+  src/Tile.cpp
   src/Map.cpp
+  src/MilitaryBase.cpp
 )
 
 if (WIN32)
