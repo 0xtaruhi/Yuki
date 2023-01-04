@@ -41,11 +41,11 @@ void StartupScene::initUi() {
   btn_start_.setOutlineColor(Color::Black);
 
   btn_start_.bindClick(
-      [this]() { btn_start_.setTextFillColor(Color::Magenta); });
-  btn_start_.bindRelease([this]() {
+      [this](sf::Event) { btn_start_.setTextFillColor(Color::Magenta); });
+  btn_start_.bindRelease([this](sf::Event) {
     btn_start_.setTextFillColor(Color::Black);
     notify_ = Notify::End;
   });
-  btn_start_.bindHover([this]() { btn_start_.setFillColor(Color::Cyan); });
-  btn_start_.bindLeave([this]() { btn_start_.setFillColor(Color::White); });
+  btn_start_.bindHover([this](sf::Event) { btn_start_.setFillColor(Color::Cyan); });
+  btn_start_.bindLeave([this](sf::Event) { btn_start_.setFillColor(Color::White); });
 }

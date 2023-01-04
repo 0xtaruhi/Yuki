@@ -14,15 +14,16 @@ namespace yuki {
 
 class Touchable {
  public:
-  using Callback = std::function<void()>;
+  using Callback = std::function<void(sf::Event e)>;
+  // using Callback = void (*)(sf::Event e);
 
   Touchable() = default;
   virtual ~Touchable() {}
 
-  virtual void onRelease() { on_releaseCallback_(); }
-  virtual void onClick() { on_clickCallback_(); }
-  virtual void onHover() { on_hoverCallback_(); }
-  virtual void onLeave() { on_leaveCallback_(); }
+  virtual void onRelease(sf::Event e) { on_releaseCallback_(e); }
+  virtual void onClick(sf::Event e) { on_clickCallback_(e); }
+  virtual void onHover(sf::Event e) { on_hoverCallback_(e); }
+  virtual void onLeave(sf::Event e) { on_leaveCallback_(e); }
 
   enum class Action { Click, Release, Hover, Leave };
   void bindAction(const Action action, Callback callback) {
@@ -53,25 +54,25 @@ class Touchable {
     if (event.type == sf::Event::MouseButtonPressed) {
       if (inRange(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
         is_clicked_ = true;
-        onClick();
+        onClick(event);
       }
     } else if (event.type == sf::Event::MouseButtonReleased) {
       if (is_clicked_) {
         is_clicked_ = false;
-        onRelease();
+        onRelease(event);
         if (inRange(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
-          onHover();
+          onHover(event);
           is_hovered_ = true;
         }
       }
     } else if (!is_clicked_ && event.type == sf::Event::MouseMoved) {
       if (!is_hovered_ &&
           inRange(sf::Vector2f(event.mouseMove.x, event.mouseMove.y))) {
-        onHover();
+        onHover(event);
         is_hovered_ = true;
       } else if (is_hovered_ &&
                  !inRange(sf::Vector2f(event.mouseMove.x, event.mouseMove.y))) {
-        onLeave();
+        onLeave(event);
         is_hovered_ = false;
       }
     }
@@ -81,10 +82,10 @@ class Touchable {
   bool is_clicked_ = false;
   bool is_hovered_ = false;
 
-  Callback on_clickCallback_ = []() {};
-  Callback on_releaseCallback_ = []() {};
-  Callback on_hoverCallback_ = []() {};
-  Callback on_leaveCallback_ = []() {};
+  Callback on_clickCallback_ = [](sf::Event) {};
+  Callback on_releaseCallback_ = [](sf::Event) {};
+  Callback on_hoverCallback_ = [](sf::Event) {};
+  Callback on_leaveCallback_ = [](sf::Event) {};
 };
 
 }  // namespace yuki

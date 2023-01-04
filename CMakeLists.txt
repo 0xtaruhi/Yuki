@@ -17,6 +17,8 @@ endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-g -D_DEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror")
+
 # set cmake module path
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -46,6 +48,7 @@ set (PROJECT_SRC
   src/Tile.cpp
   src/Map.cpp
   src/MilitaryBase.cpp
+  src/FloatingBubble.cpp
 )
 
 if (WIN32)

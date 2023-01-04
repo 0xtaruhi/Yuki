@@ -1,6 +1,7 @@
 #include "MainScene.hpp"
 
 #include "Basic.hpp"
+#include "InteractiveObject.hpp"
 
 using namespace yuki;
 using namespace sf;
@@ -28,7 +29,8 @@ void MainScene::processEvent(sf::Event event) {
   YukiScene::processEvent(event);
   if (event.type == sf::Event::KeyPressed) {
     if (event.key.code == sf::Keyboard::G) {
-      generateSodier();
+      // generateSodier();
+      sendMessage(Message::GenerateOwnSodier);
     } else if (event.key.code == sf::Keyboard::W) {
       soldiers_[0]->setDirection(Direction::Up);
     } else if (event.key.code == sf::Keyboard::S) {
@@ -85,6 +87,18 @@ void MainScene::updateInfo() {
     enemy->update();
   }
 
+  while (!message_quene_.empty()) {
+    auto message = message_quene_.front();
+    message_quene_.pop();
+    switch (message) {
+      case Message::GenerateOwnSodier:
+        generateSodier();
+      break;
+      default:
+      break;
+    }
+  }
+
   // erase dead sodiers
   soldiers_.erase(std::remove_if(soldiers_.begin(), soldiers_.end(),
                                  [](const std::shared_ptr<Sodier>& sodier) {
@@ -96,13 +110,21 @@ void MainScene::updateInfo() {
                                   return sodier->getHealth() <= 0.f;
                                 }),
                  enemies_.end());
+  
+  // message quene
 }
 
 void MainScene::generateSodier() {
   auto new_sodier = getDefaultSodier();
-  new_sodier->bindHover([=]() { new_sodier->setColor({255, 255, 255, 192}); });
-  new_sodier->bindLeave([=]() { new_sodier->setColor({255, 255, 255, 255}); });
-  new_sodier->bindClick([=]() { new_sodier->setColor({255, 0, 200, 255}); });
+  new_sodier->bindHover([=](sf::Event) {
+    new_sodier->setColor({255, 255, 255, 192});
+  });
+  new_sodier->bindLeave([=](sf::Event) {
+    new_sodier->setColor({255, 255, 255, 255});
+  });
+  new_sodier->bindClick([=](sf::Event) {
+    new_sodier->setColor({255, 0, 200, 255});
+  });
   soldiers_.push_back(std::move(new_sodier));
 }
 
@@ -191,6 +213,18 @@ void MainScene::initMap() {
 void MainScene::initBuildings() {
   own_base_.setPosition(coordinateToPixel({2, 14}));
   enemy_base_.setPosition(coordinateToPixel({24, 14}));
+  registerTouchableObject(std::shared_ptr<Touchable>(&own_base_));
+  registerTouchableObject(std::shared_ptr<Touchable>(&enemy_base_));
+
+  own_base_.bindClick([=](sf::Event) {
+    const auto& mouse_pos = sf::Mouse::getPosition(window_);
+    auto bubble_index = own_base_.getFloatingBubbleIndexByPosition(
+        Vector2f(mouse_pos.x, mouse_pos.y));
+    if (bubble_index == -1) return;
+    if (bubble_index == 2) {
+      sendMessage(Message::GenerateOwnSodier);
+    }
+  });
 }
 
 sf::Vector2f MainScene::coordinateToPixel(const Vector2i& coordinate) {

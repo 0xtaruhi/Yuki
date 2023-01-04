@@ -6,6 +6,7 @@
 #include "Sodier.hpp"
 #include "MilitaryBase.hpp"
 #include "YukiScene.hpp"
+#include <queue>
 
 namespace yuki {
 
@@ -13,8 +14,19 @@ class MainScene : public YukiScene {
   YUKI_SCENE
 
  public:
+  enum class Message {
+    GenerateOwnSodier,
+    OwnBaseLevelUp,
+  };
+
+ public:
   MainScene(sf::RenderWindow& window);
   virtual ~MainScene() {}
+
+  void generateSodier();
+  void sendMessage(const Message& message) {
+    message_quene_.push(message);
+  }
 
  private:
   Map map_;
@@ -27,8 +39,6 @@ class MainScene : public YukiScene {
 
   void initBuildings();
 
-  void generateSodier();
-
   std::shared_ptr<yuki::Sodier> getDefaultSodier();
 
   sf::Vector2f coordinateToPixel(const sf::Vector2i& coordinate);
@@ -36,6 +46,8 @@ class MainScene : public YukiScene {
 
   MilitaryBase own_base_;
   MilitaryBase enemy_base_;
+
+  std::queue<Message> message_quene_;
 
 #ifdef YUKI_DEBUG
   sf::Text debug_text_;
