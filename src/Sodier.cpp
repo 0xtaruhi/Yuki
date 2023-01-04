@@ -19,17 +19,29 @@ void Sodier::update() {
                            sprite_.getPosition().y + health_bar_offset_.y});
 }
 
-NormalSodier::NormalSodier() : Sodier() {
+NormalSodier::NormalSodier(Camp camp) : Sodier(camp) {
   current_frame_ = 0;
   max_frame_ = 3;
 
+  std::string res_loc("assets/character/");
+  if (camp == Camp::Own) {
+    res_loc += "dragon_blue.png";
+  } else {
+    res_loc += "dragon_red.png";
+  }
+
   // Load the texture
-  if (!all_textures_.loadFromFile("assets/character/dragon_red.png")) {
+  if (!all_textures_.loadFromFile(res_loc)) {
     std::cout << "Failed to load texture" << std::endl;
   }
   sprite_.setTexture(all_textures_);
   sprite_.setPosition(100, 100);
   sprite_.setTextureRect(sf::IntRect(0, 0, 42, 42));
+}
+
+NormalSodier::NormalSodier(const sf::Vector2f& position, Camp camp)
+    : NormalSodier(camp) {
+  setPosition(position);
 }
 
 void NormalSodier::draw(sf::RenderTarget& target,

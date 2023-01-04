@@ -49,6 +49,7 @@ set (PROJECT_SRC
   src/Map.cpp
   src/MilitaryBase.cpp
   src/FloatingBubble.cpp
+  src/InfoBar.cpp
 )
 
 if (WIN32)

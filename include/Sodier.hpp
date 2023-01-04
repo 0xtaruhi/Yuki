@@ -9,13 +9,11 @@
 #include "StatusBar.hpp"
 #include "YukiScene.hpp"
 
-
 namespace yuki {
 class Sodier : public sf::Drawable, public Touchable {
  public:
-  Sodier() { health_bar_ = getHealthBar(); }
-  Sodier(const sf::Vector2f& position) {
-    health_bar_ = getHealthBar();
+  Sodier(Camp camp = Camp::Own) : camp_(camp) { health_bar_ = getHealthBar(); }
+  Sodier(const sf::Vector2f& position, Camp camp = Camp::Own) : Sodier(camp) {
     setPosition(position);
   }
 
@@ -54,14 +52,13 @@ class Sodier : public sf::Drawable, public Touchable {
   void increaseHealth(const float health) { health_bar_.increase(health); }
   void decreaseHealth(const float health) { health_bar_.decrease(health); }
 
-  void setColor(const sf::Color& color) {
-    sprite_.setColor(color);
-  }
+  void setColor(const sf::Color& color) { sprite_.setColor(color); }
 
  protected:
   // sf::Sprite sprite_;
   sf::Sprite sprite_;
   sf::Vector2f health_bar_offset_ = {0, -15};
+  Camp camp_;
 
   bool is_moving_ = false;
   Direction direction_ = Direction::Down;
@@ -74,10 +71,8 @@ class Sodier : public sf::Drawable, public Touchable {
 
 class NormalSodier : public Sodier {
  public:
-  NormalSodier();
-  NormalSodier(const sf::Vector2f& position) : NormalSodier() {
-    sprite_.setPosition(position);
-  }
+  NormalSodier(Camp camp = Camp::Own);
+  NormalSodier(const sf::Vector2f& position, Camp camp = Camp::Own);
 
   virtual ~NormalSodier() {}
 

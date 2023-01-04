@@ -71,6 +71,8 @@ void MainScene::draw() const {
   window_.draw(own_base_);
   window_.draw(enemy_base_);
 
+  window_.draw(info_bar_);
+
 #ifdef YUKI_DEBUG
   window_.draw(debug_text_);
 #endif
@@ -93,25 +95,40 @@ void MainScene::updateInfo() {
     switch (message) {
       case Message::GenerateOwnSodier:
         generateSodier();
-      break;
+        break;
       default:
-      break;
+        break;
     }
   }
+  eraseDeadSodier();
+}
 
-  // erase dead sodiers
-  soldiers_.erase(std::remove_if(soldiers_.begin(), soldiers_.end(),
-                                 [](const std::shared_ptr<Sodier>& sodier) {
-                                   return sodier->getHealth() <= 0.f;
-                                 }),
+void MainScene::eraseDeadSodier() {
+  const auto& window_size = window_.getSize();
+
+  auto left_bound = -map_.getTileSize().x;
+  auto right_bound = window_size.x;
+  auto up_bound = -map_.getTileSize().y;
+  auto down_bound = window_size.y;
+
+  auto isDead = [=](const std::shared_ptr<Sodier>& sodier) {
+    if (sodier->getHealth() <= 0.f) {
+      return true;
+    }
+
+    // out of window
+    const auto& sodier_pos = sodier->getPosition();
+    if (sodier_pos.x < left_bound || sodier_pos.x >= right_bound ||
+        sodier_pos.y < up_bound || sodier_pos.y >= down_bound) {
+      return true;
+    }
+    return false;
+  };
+
+  soldiers_.erase(std::remove_if(soldiers_.begin(), soldiers_.end(), isDead),
                   soldiers_.end());
-  enemies_.erase(std::remove_if(enemies_.begin(), enemies_.end(),
-                                [](const std::shared_ptr<Sodier>& sodier) {
-                                  return sodier->getHealth() <= 0.f;
-                                }),
+  enemies_.erase(std::remove_if(enemies_.begin(), enemies_.end(), isDead),
                  enemies_.end());
-  
-  // message quene
 }
 
 void MainScene::generateSodier() {
@@ -131,6 +148,7 @@ void MainScene::generateSodier() {
 void MainScene::initUi() {
   initMap();
   initBuildings();
+  initInfoHint();
 #ifdef YUKI_DEBUG
   debug_text_.setCharacterSize(20);
   debug_text_.setFillColor(sf::Color::Black);
@@ -225,6 +243,18 @@ void MainScene::initBuildings() {
       sendMessage(Message::GenerateOwnSodier);
     }
   });
+}
+
+void MainScene::initInfoHint() {
+  info_bar_.setSize(Vector2f{168.f, 32.f});
+  info_bar_.setPosition(
+      Vector2f(10.f, window_.getSize().y - info_bar_.getSize().y - 10.f));
+  setMoney(150);
+}
+
+void MainScene::setMoney(int money) {
+  money_ = money;
+  info_bar_.setMoney(money);
 }
 
 sf::Vector2f MainScene::coordinateToPixel(const Vector2i& coordinate) {

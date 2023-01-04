@@ -11,6 +11,8 @@ constexpr auto kWindowHeight = 640;
 
 enum class Direction { Down = 0, Left, Right, Up, Other };
 
+enum class Camp { Own, Enemy, Other };
+
 namespace GameFont {
 inline auto initFont(const sf::String& font_path) {
   sf::Font font;
