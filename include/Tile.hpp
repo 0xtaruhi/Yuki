@@ -33,7 +33,8 @@ sf::Vector2f getTileScaleFactor(const TileInfo& tile_info);
 class Tile : public sf::Sprite {
  public:
   auto getTileInfo() const { return tile_info_; }
-  void setTileInfo(TileInfo&& tile_info) { tile_info_ = tile_info; }
+  void setTileInfo(TileInfo&& tile_info) { tile_info_ = std::move(tile_info); }
+  void setTileInfo(const TileInfo& tile_info) { tile_info_ = tile_info; }
 
   void setTextureSrc(const std::string& src_location) {
     texture_.loadFromFile(src_location);

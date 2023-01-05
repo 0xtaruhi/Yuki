@@ -51,6 +51,14 @@ const Tile& Map::getTile(int x, int y) const {
   return tiles_[y * size_.x + x];
 }
 
+Tile& Map::getTile(const sf::Vector2i& coordinate) {
+  return getTile(coordinate.x, coordinate.y);
+}
+
+const Tile& Map::getTile(const sf::Vector2i& coordinate) const {
+  return getTile(coordinate.x, coordinate.y);
+}
+
 void Map::setTile(int x, int y, const TileInfo& tile_info) {
   auto src_name = getTileSrcName(tile_info);
   auto& tile = getTile(x, y);
@@ -59,4 +67,5 @@ void Map::setTile(int x, int y, const TileInfo& tile_info) {
   auto scale_factor = getTileScaleFactor(tile_info);
   auto basic_scale = tile_size_.x / texture_size.x;
   tile.setScale(basic_scale * scale_factor);
+  tile.setTileInfo(tile_info);
 }

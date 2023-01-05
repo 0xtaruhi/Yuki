@@ -9,20 +9,18 @@ using namespace sf;
 const sf::Vector2i MainScene::kOwnSoldierBirthCoordinate = {3, 17};
 const sf::Vector2i MainScene::kEnemySoldierBirthCoordinate = {25, 17};
 
-std::shared_ptr<Soldier> MainScene::getDefaultSoldier(Camp camp) {
-  auto soldier = std::make_shared<NormalSoldier>(camp);
+// const sf::Vector2i MainScene::kOwnBaseCoordinate = {3, 18};
+const sf::Vector2i MainScene::kEnemyBaseCoordinate = {26, 14};
+
+std::shared_ptr<Soldier> MainScene::generateSoldier(const std::string& name,
+                                                    Camp camp) {
+  auto soldier = getSoldier(name, camp);
   registerTouchableObject(soldier);
 
   auto birth_coordinate = camp == Camp::Own ? kOwnSoldierBirthCoordinate
                                             : kEnemySoldierBirthCoordinate;
+
   soldier->setPosition(coordinateToPixel(birth_coordinate));
-
-  soldier->setSpeed(1.f);
-  soldier->setDirection(Direction::Up);
-
-  soldier->setMoving(true);
-  soldier->setMaxHealth(100.f);
-  soldier->setHealth(100.f);
   return soldier;
 }
 
@@ -36,22 +34,22 @@ int MainScene::show() { return YukiScene::show(); }
 
 void MainScene::processEvent(sf::Event event) {
   YukiScene::processEvent(event);
-  if (event.type == sf::Event::KeyPressed) {
-    if (focused_object_type_ == ObjectType::OwnSoldier) {
-      auto soldier = std::dynamic_pointer_cast<Soldier>(focused_object_);
-      if (event.key.code == sf::Keyboard::W) {
-        soldier->setDirection(Direction::Up);
-      } else if (event.key.code == sf::Keyboard::S) {
-        soldier->setDirection(Direction::Down);
-      } else if (event.key.code == sf::Keyboard::A) {
-        soldier->setDirection(Direction::Left);
-      } else if (event.key.code == sf::Keyboard::D) {
-        soldier->setDirection(Direction::Right);
-      } else if (event.key.code == sf::Keyboard::Space) {
-        soldier->setMoving(!soldier->isMoving());
-      }
-    }
-  }
+  // if (event.type == sf::Event::KeyPressed) {
+  //   if (focused_object_type_ == ObjectType::OwnSoldier) {
+  //     auto soldier = std::dynamic_pointer_cast<Soldier>(focused_object_);
+  //     if (event.key.code == sf::Keyboard::W) {
+  //       soldier->setDirection(Direction::Up);
+  //     } else if (event.key.code == sf::Keyboard::S) {
+  //       soldier->setDirection(Direction::Down);
+  //     } else if (event.key.code == sf::Keyboard::A) {
+  //       soldier->setDirection(Direction::Left);
+  //     } else if (event.key.code == sf::Keyboard::D) {
+  //       soldier->setDirection(Direction::Right);
+  //     } else if (event.key.code == sf::Keyboard::Space) {
+  //       soldier->setMoving(!soldier->isMoving());
+  //     }
+  // }
+  // }
 
 #ifdef YUKI_DEBUG
   if (event.type == sf::Event::MouseButtonPressed) {
@@ -77,10 +75,11 @@ void MainScene::draw() const {
   for (auto& enemy : enemies_) {
     window_.draw(*enemy);
   }
-  window_.draw(own_base_);
-  window_.draw(enemy_base_);
+  window_.draw(*own_base_);
+  window_.draw(*enemy_base_);
 
-  window_.draw(info_bar_);
+  window_.draw(*info_bar_);
+  window_.draw(*skill_bar_);
 
 #ifdef YUKI_DEBUG
   window_.draw(debug_text_);
@@ -138,10 +137,88 @@ void MainScene::eraseDeadSoldier() {
                   soldiers_.end());
   enemies_.erase(std::remove_if(enemies_.begin(), enemies_.end(), isDead),
                  enemies_.end());
+
+  sodierAdjustDirection();
+}
+
+void MainScene::sodierAdjustDirection() {
+  auto valid_coordinate = [=](const sf::Vector2i& coordinate) {
+    return coordinate.x >= 0 && coordinate.x < map_.getSize().x &&
+           coordinate.y >= 0 && coordinate.y < map_.getSize().y;
+  };
+  auto walkable = [=](const sf::Vector2i& coordinate) {
+    if (!valid_coordinate(coordinate)) {
+      return false;
+    }
+    return map_.getTile(coordinate).getTileInfo().category ==
+           TileCategory::Road;
+  };
+  auto getLeftCoordinate = [=](const sf::Vector2i& coordinate) {
+    return sf::Vector2i(coordinate.x - 1, coordinate.y);
+  };
+  auto getRightCoordinate = [=](const sf::Vector2i& coordinate) {
+    return sf::Vector2i(coordinate.x + 1, coordinate.y);
+  };
+  auto getUpCoordinate = [=](const sf::Vector2i& coordinate) {
+    return sf::Vector2i(coordinate.x, coordinate.y - 1);
+  };
+  auto getDownCoordinate = [=](const sf::Vector2i& coordinate) {
+    return sf::Vector2i(coordinate.x, coordinate.y + 1);
+  };
+
+  auto distanceToEnemyBase = [=](const sf::Vector2i& coordinate) {
+    return std::abs(coordinate.x - kEnemyBaseCoordinate.x) +
+           std::abs(coordinate.y - kEnemyBaseCoordinate.y);
+  };
+
+  std::for_each(soldiers_.begin(), soldiers_.end(), [=](auto& soldier) {
+    auto coordinate = pixelToCoordinate(soldier->getPosition());
+    // coordinate fix (for origin at left-top)
+    coordinate.x++;
+    coordinate.y++;
+
+    auto distance = distanceToEnemyBase(coordinate);
+    if (distance < 2.f) {
+      soldier->setMoving(false);
+      return;
+    }
+
+    auto next_coordinate(coordinate);
+    switch (soldier->getDirection()) {
+      case Direction::Up:
+        next_coordinate.y -= 1;
+        break;
+      case Direction::Down:
+        next_coordinate.y += 1;
+        break;
+      case Direction::Left:
+        next_coordinate.x -= 1;
+        break;
+      case Direction::Right:
+        next_coordinate.x += 1;
+        break;
+      default:
+        break;
+    }
+    if (!walkable(next_coordinate)) {
+      // if (walkable(getLeftCoordinate(coordinate))) {
+      //   soldier->setDirection(Direction::Left);
+      // } else if (walkable(getRightCoordinate(coordinate))) {
+      if (walkable(getRightCoordinate(coordinate))) {
+        soldier->setDirection(Direction::Right);
+      } else if (walkable(getUpCoordinate(coordinate))) {
+        soldier->setDirection(Direction::Up);
+      } else if (walkable(getDownCoordinate(coordinate))) {
+        soldier->setDirection(Direction::Down);
+      } else {
+        soldier->setMoving(false);
+      }
+    }
+  });
 }
 
 void MainScene::generateSoldier() {
-  auto new_soldier = getDefaultSoldier();
+  auto new_soldier = generateSoldier("NormalSoldier", Camp::Own);
   new_soldier->bindHover([=](sf::Event) {
     if (!new_soldier->isFocused()) {
       new_soldier->setColor({255, 255, 255, 192});
@@ -249,13 +326,16 @@ void MainScene::initMap() {
 }
 
 void MainScene::initBuildings() {
-  own_base_.setPosition(coordinateToPixel({2, 14}));
-  enemy_base_.setPosition(coordinateToPixel({24, 14}));
-  registerTouchableObject(std::shared_ptr<Touchable>(&own_base_));
-  registerTouchableObject(std::shared_ptr<Touchable>(&enemy_base_));
+  own_base_ = std::make_shared<MilitaryBase>();
+  enemy_base_ = std::make_shared<MilitaryBase>();
+
+  own_base_->setPosition(coordinateToPixel({2, 14}));
+  enemy_base_->setPosition(coordinateToPixel({24, 14}));
+  registerTouchableObject(own_base_);
+  // registerTouchableObject(std::shared_ptr<Touchable>(&enemy_base_));
 
   // floating bubble init
-  auto& own_base_fb = own_base_.getFloatingBubble();
+  auto& own_base_fb = own_base_->getFloatingBubble();
   auto& own_base_fb_items = own_base_fb.getBubbleItems();
 
   own_base_fb_items[0]->loadTexture("assets/res/update_base.jpg");
@@ -274,9 +354,9 @@ void MainScene::initBuildings() {
   }
 
   // Bind Floating Bubble Actions
-  own_base_.bindClick([=](sf::Event) {
+  own_base_->bindClick([=](sf::Event) {
     const auto& mouse_pos = sf::Mouse::getPosition(window_);
-    auto bubble_index = own_base_.getFloatingBubbleIndexByPosition(
+    auto bubble_index = own_base_->getFloatingBubbleIndexByPosition(
         Vector2f(mouse_pos.x, mouse_pos.y));
     if (bubble_index == -1) return;
     if (bubble_index == 2) {
@@ -286,15 +366,22 @@ void MainScene::initBuildings() {
 }
 
 void MainScene::initInfoHint() {
-  info_bar_.setSize(Vector2f{168.f, 32.f});
-  info_bar_.setPosition(
-      Vector2f(10.f, window_.getSize().y - info_bar_.getSize().y - 10.f));
+  // info bar
+  info_bar_ = std::make_shared<InfoBar>();
+
+  info_bar_->setSize(Vector2f{168.f, 32.f});
+  info_bar_->setPosition(
+      Vector2f(10.f, window_.getSize().y - info_bar_->getSize().y - 10.f));
   setMoney(150);
+
+  // skill bar
+  skill_bar_ = std::make_shared<SkillBar<3>>();
+  registerTouchableObject(skill_bar_);
 }
 
 void MainScene::setMoney(int money) {
   money_ = money;
-  info_bar_.setMoney(money);
+  info_bar_->setMoney(money);
 }
 
 sf::Vector2f MainScene::coordinateToPixel(const Vector2i& coordinate) {

@@ -5,6 +5,14 @@
 using namespace yuki;
 using namespace sf;
 
+void Soldier::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  target.draw(sprite_, states);
+  target.draw(health_bar_, states);
+  if (floating_bubble_visible_) {
+    target.draw(floating_bubble_, states);
+  }
+}
+
 bool Soldier::inRange(const Vector2f& target) const {
   return sprite_.getGlobalBounds().contains(target);
 }
@@ -46,9 +54,8 @@ NormalSoldier::NormalSoldier(const sf::Vector2f& position, Camp camp)
 }
 
 void NormalSoldier::draw(sf::RenderTarget& target,
-                        sf::RenderStates states) const {
-  target.draw(sprite_, states);
-  target.draw(health_bar_, states);
+                         sf::RenderStates states) const {
+  Soldier::draw(target, states);
 }
 
 void NormalSoldier::update() {
@@ -100,4 +107,24 @@ void NormalSoldier::update() {
     default:
       break;
   }
+}
+
+std::shared_ptr<NormalSoldier> yuki::getNormalSoldier(Camp camp) {
+  auto soldier = std::make_shared<NormalSoldier>(camp);
+
+  soldier->setSpeed(1.f);
+  soldier->setDirection(Direction::Up);
+
+  soldier->setMoving(true);
+  soldier->setMaxHealth(100.f);
+  soldier->setHealth(100.f);
+  
+  return soldier;
+}
+
+std::shared_ptr<Soldier> yuki::getSoldier(const std::string& name, Camp camp) {
+  if (name == "NormalSoldier") {
+    return getNormalSoldier(camp);
+  }
+  return nullptr;
 }
