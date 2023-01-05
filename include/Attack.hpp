@@ -2,7 +2,9 @@
 #define ATTACK_HPP
 
 #include <SFML/Graphics.hpp>
+#include <queue>
 
+#include "Basic.hpp"
 #include "Elementum.hpp"
 
 namespace yuki {
@@ -30,7 +32,7 @@ class BasicAttack {
   }
   BasicAttack(const AttackInfo& info) : info_(info) {}
 
-  virtual ~BasicAttack() = 0;
+  virtual ~BasicAttack() {}
 
  private:
   AttackInfo info_;
@@ -44,17 +46,46 @@ class GranuleAttack : public BasicAttack, public sf::Drawable {
     granule_.setPosition(position);
   }
 
-  virtual ~GranuleAttack() = 0;
+  virtual ~GranuleAttack() {}
 
   virtual void draw(sf::RenderTarget& target,
-                    sf::RenderStates states) const override = 0;
+                    sf::RenderStates states) const override;
+
+  virtual void update();
 
  protected:
   sf::Sprite granule_;
+  float speed_;
+  Direction direction_;
 };
 
+class GranuleAttackable {
+ public:
+  GranuleAttackable(float speed = 0.f, Direction direction = Direction::Up)
+      : speed_(speed), direction_(direction) {}
+
+  virtual ~GranuleAttackable() {}
+
+  void addGranuleAttack(const sf::Vector2f& position,
+                        const AttackInfo& attack_info) {
+    granule_attacks_.push(GranuleAttack(position, attack_info));
+  }
+  void addGranuleAttack(const sf::Vector2f& position) {
+    granule_attacks_.push(GranuleAttack(position, default_attack_info_));
+  }
+
+  void setDefaultAttackInfo(const AttackInfo& attack_info) {
+    default_attack_info_ = attack_info;
+  }
+
+ private:
+  std::queue<GranuleAttack> granule_attacks_;
+  float speed_;
+  Direction direction_;
+
+  AttackInfo default_attack_info_;
+};
 
 }  // namespace yuki
 
 #endif  // ATTACK_HPP
-

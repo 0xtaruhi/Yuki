@@ -1,19 +1,24 @@
-#ifndef SODIER_HPP
-#define SODIER_HPP
+#ifndef SOLDIER_HPP
+#define SOLDIER_HPP
 
 #include <SFML/Graphics.hpp>
+#include <string>
 
 #include "Basic.hpp"
 #include "Elementum.hpp"
+#include "FloatingBubble.hpp"
 #include "InteractiveObject.hpp"
 #include "StatusBar.hpp"
 #include "YukiScene.hpp"
-#include "FloatingBubble.hpp"
 
 namespace yuki {
 class Soldier : public sf::Drawable, public Focusable {
  public:
-  Soldier(Camp camp = Camp::Own) : camp_(camp) { health_bar_ = getHealthBar(); }
+  Soldier(Camp camp = Camp::Own) : camp_(camp) {
+    health_bar_ = getHealthBar();
+    setOrigin({sprite_.getLocalBounds().width / 2.f,
+               sprite_.getLocalBounds().height});
+  }
   Soldier(const sf::Vector2f& position, Camp camp = Camp::Own) : Soldier(camp) {
     setPosition(position);
   }
@@ -21,7 +26,7 @@ class Soldier : public sf::Drawable, public Focusable {
   virtual ~Soldier() {}
 
   virtual void draw(sf::RenderTarget& target,
-                    sf::RenderStates states) const override = 0;
+                    sf::RenderStates states) const override;
 
   // Focusable object
   FOCUSABLE_OBJECT(Soldier)
@@ -41,6 +46,13 @@ class Soldier : public sf::Drawable, public Focusable {
         {position.x + health_bar_offset_.x, position.y + health_bar_offset_.y});
   }
   const auto getPosition() const { return sprite_.getPosition(); }
+  void setOrigin(const sf::Vector2f& origin) { sprite_.setOrigin(origin); }
+  const auto getOrigin() const { return sprite_.getOrigin(); }
+
+  auto getSize() const {
+    return sf::Vector2f(sprite_.getGlobalBounds().width,
+                        sprite_.getGlobalBounds().height);
+  }
 
   void setMaxHealth(const float max_health) {
     health_bar_.setMaxValue(max_health);
@@ -58,6 +70,16 @@ class Soldier : public sf::Drawable, public Focusable {
   void setPlaceOffset(const sf::Vector2f& offset) { place_offset_ = offset; }
   virtual const sf::Vector2f& getPlaceOffset() const { return place_offset_; }
 
+  void setFloatingBubbleVisible(const bool visible) {
+    floating_bubble_visible_ = visible;
+  }
+  constexpr auto isFloatingBubbleVisible() const {
+    return floating_bubble_visible_;
+  }
+
+  auto& getFloatingBubble() { return floating_bubble_; }
+  const auto& getFloatingBubble() const { return floating_bubble_; }
+
  protected:
   // sf::Sprite sprite_;
   sf::Sprite sprite_;
@@ -71,6 +93,9 @@ class Soldier : public sf::Drawable, public Focusable {
   float speed_ = 0.0f;
   Elementum elementum_ = Elementum(yuki::ElementumType::None, 0.0f);
   StatusBar health_bar_;
+
+  FloatingBubble floating_bubble_;
+  bool floating_bubble_visible_;
 
   sf::Clock clock_;
 };
@@ -98,6 +123,10 @@ class NormalSoldier : public Soldier {
 
   FloatingBubble floating_bubble_;
 };
+
+std::shared_ptr<NormalSoldier> getNormalSoldier(Camp camp = Camp::Own);
+std::shared_ptr<Soldier> getSoldier(const std::string& name,
+                                    Camp camp = Camp::Own);
 
 }  // namespace yuki
 

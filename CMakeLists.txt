@@ -51,6 +51,9 @@ set(PROJECT_SRC
   src/FloatingBubble.cpp
   src/InfoBar.cpp
   src/InteractiveObject.cpp
+  src/Attack.cpp
+  src/CircularSector.cpp
+  src/Skill.cpp
 )
 
 if(WIN32)

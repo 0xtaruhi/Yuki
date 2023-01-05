@@ -7,6 +7,7 @@
 #include "InfoBar.hpp"
 #include "Map.hpp"
 #include "MilitaryBase.hpp"
+#include "Skill.hpp"
 #include "Soldier.hpp"
 #include "YukiScene.hpp"
 
@@ -39,11 +40,14 @@ class MainScene : public YukiScene {
  private:
   const static sf::Vector2i kOwnSoldierBirthCoordinate;
   const static sf::Vector2i kEnemySoldierBirthCoordinate;
+  // const static sf::Vector2i kOwnBaseCoordinate;
+  const static sf::Vector2i kEnemyBaseCoordinate;
 
   Map map_;
-  MilitaryBase own_base_;
-  MilitaryBase enemy_base_;
-  InfoBar info_bar_;
+  std::shared_ptr<MilitaryBase> own_base_;
+  std::shared_ptr<MilitaryBase> enemy_base_;
+  std::shared_ptr<InfoBar> info_bar_;
+  std::shared_ptr<SkillBar<3>> skill_bar_;
 
   int money_;
 
@@ -60,9 +64,12 @@ class MainScene : public YukiScene {
 
   void setMoney(int money);
 
-  std::shared_ptr<yuki::Soldier> getDefaultSoldier(Camp camp = Camp::Own);
+  // std::shared_ptr<yuki::Soldier> getDefaultSoldier(Camp camp = Camp::Own);
+  std::shared_ptr<yuki::Soldier> generateSoldier(const std::string& name,
+                                                 Camp camp = Camp::Own);
 
   void eraseDeadSoldier();
+  void sodierAdjustDirection();
 
   sf::Vector2f coordinateToPixel(const sf::Vector2i& coordinate);
   sf::Vector2i pixelToCoordinate(const sf::Vector2f& pixel_position);

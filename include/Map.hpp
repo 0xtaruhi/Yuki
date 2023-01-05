@@ -27,6 +27,9 @@ class Map : public sf::Drawable {
   Tile& getTile(int row, int col);
   const Tile& getTile(int row, int col) const;
 
+  Tile& getTile(const sf::Vector2i& coordinate);
+  const Tile& getTile(const sf::Vector2i& coordinate) const;
+
   void setTile(int row, int col, const TileInfo& tile_info);
 
  private:

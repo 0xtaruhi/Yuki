@@ -3,6 +3,9 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "Basic.hpp"
+
+
 namespace yuki {
 
 class StatusBar : public sf::Drawable {
@@ -32,7 +35,9 @@ class StatusBar : public sf::Drawable {
 
   auto isVisible() const { return visible_; }
 
-  void setBackgroudColor(const sf::Color color) { background_.setFillColor(color); }
+  void setBackgroudColor(const sf::Color color) {
+    background_.setFillColor(color);
+  }
   void setFilledColor(const sf::Color color) { filled_.setFillColor(color); }
   void setMaxValue(const float max_value) { max_value_ = max_value; }
   void setValue(const float current_value) {
@@ -94,16 +99,8 @@ class StatusBar : public sf::Drawable {
   void adjustIfOverflow();
 };
 
-inline auto getHealthBar(const sf::Vector2f& size = {30.f, 5.f}) {
-  auto health_bar = StatusBar(size, {0.f, 0.f});
-  health_bar.setBackgroudColor(sf::Color::Black);
-  health_bar.setFilledColor(sf::Color::Red);
-  
-  // set Outline
-  health_bar.setOutlineStyle(sf::Color::White, 1.f);
-
-  return health_bar;
-}
+StatusBar getHealthBar(const sf::Vector2f& size = {30.f, 5.f},
+                       Camp camp = Camp::Own);
 
 }  // namespace yuki
 

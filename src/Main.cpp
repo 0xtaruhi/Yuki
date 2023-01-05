@@ -7,6 +7,9 @@
 using namespace yuki;
 
 int main() {
+  sf::ContextSettings settings;
+  settings.antialiasingLevel = 8;
+
   sf::RenderWindow window(sf::VideoMode(kWindowWidth, kWindowHeight), "Yuki");
   window.setFramerateLimit(60);
 
