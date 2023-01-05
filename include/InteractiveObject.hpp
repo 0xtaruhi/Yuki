@@ -10,6 +10,8 @@
                                                                      \
  public:
 
+#define FOCUSABLE_OBJECT(OBJECT_NAME) TOUCHABLE_OBJECT(OBJECT_NAME)
+
 namespace yuki {
 
 class Touchable {
@@ -26,22 +28,8 @@ class Touchable {
   virtual void onLeave(sf::Event e) { on_leaveCallback_(e); }
 
   enum class Action { Click, Release, Hover, Leave };
-  void bindAction(const Action action, Callback callback) {
-    switch (action) {
-      case Action::Click:
-        on_clickCallback_ = callback;
-        break;
-      case Action::Release:
-        on_releaseCallback_ = callback;
-        break;
-      case Action::Hover:
-        on_hoverCallback_ = callback;
-        break;
-      case Action::Leave:
-        on_leaveCallback_ = callback;
-        break;
-    }
-  }
+
+  void bindAction(const Action action, Callback callback);
 
   void bindClick(Callback callback) { on_clickCallback_ = callback; }
   void bindRelease(Callback callback) { on_releaseCallback_ = callback; }
@@ -49,34 +37,7 @@ class Touchable {
   void bindLeave(Callback callback) { on_leaveCallback_ = callback; }
 
   virtual bool inRange(const sf::Vector2f& position) const = 0;
-
-  void updateStatus(sf::Event event) {
-    if (event.type == sf::Event::MouseButtonPressed) {
-      if (inRange(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
-        is_clicked_ = true;
-        onClick(event);
-      }
-    } else if (event.type == sf::Event::MouseButtonReleased) {
-      if (is_clicked_) {
-        is_clicked_ = false;
-        onRelease(event);
-        if (inRange(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
-          onHover(event);
-          is_hovered_ = true;
-        }
-      }
-    } else if (!is_clicked_ && event.type == sf::Event::MouseMoved) {
-      if (!is_hovered_ &&
-          inRange(sf::Vector2f(event.mouseMove.x, event.mouseMove.y))) {
-        onHover(event);
-        is_hovered_ = true;
-      } else if (is_hovered_ &&
-                 !inRange(sf::Vector2f(event.mouseMove.x, event.mouseMove.y))) {
-        onLeave(event);
-        is_hovered_ = false;
-      }
-    }
-  }
+  virtual void updateStatus(sf::Event event);
 
  protected:
   bool is_clicked_ = false;
@@ -86,6 +47,30 @@ class Touchable {
   Callback on_releaseCallback_ = [](sf::Event) {};
   Callback on_hoverCallback_ = [](sf::Event) {};
   Callback on_leaveCallback_ = [](sf::Event) {};
+};
+
+class Focusable : public Touchable {
+ public:
+  using Callback = std::function<void(sf::Event e)>;
+
+  Focusable() = default;
+  virtual ~Focusable() {}
+
+  virtual void onFocus(sf::Event e) { on_focusCallback_(e); }
+  virtual void onUnfocus(sf::Event e) { on_unfocusCallback_(e); }
+
+  constexpr auto isFocused() const { return is_focused_; }
+
+  void bindFocus(Callback callback) { on_focusCallback_ = callback; }
+  void bindUnfocus(Callback callback) { on_unfocusCallback_ = callback; }
+
+  void updateStatus(sf::Event event);
+
+ private:
+  bool is_focused_ = false;
+
+  Callback on_focusCallback_ = [](sf::Event) {};
+  Callback on_unfocusCallback_ = [](sf::Event) {};
 };
 
 }  // namespace yuki

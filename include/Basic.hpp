@@ -29,6 +29,14 @@ inline auto initFont(const sf::String& font_path) {
 const static auto DefaultFont = initFont("assets/font/ARLRDBD.ttf");
 }  // namespace GameFont
 
+namespace YukiColor {
+  const static sf::Color Transparent_50(255, 255, 255, 128);
+  const static sf::Color Transparent(255, 255, 255, 0);
+  const static sf::Color Transparent_25(255, 255, 255, 192);
+  const static sf::Color Transparent_75(255, 255, 255, 64);
+  const static sf::Color Normal(255, 255, 255, 255);
+}
+
 inline sf::Vector2f getVectorSpeed(const Direction direction,
                                    const float speed) {
   switch (direction) {

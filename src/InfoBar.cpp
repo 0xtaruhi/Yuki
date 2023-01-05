@@ -37,7 +37,7 @@ void InfoBar::initUi() {
 
   text_money_.setFont(GameFont::DefaultFont);
   text_money_.setCharacterSize(24);
-  text_money_.setColor(Color::Black);
+  text_money_.setFillColor(Color::Black);
 
   text_money_.setString("0");
 }

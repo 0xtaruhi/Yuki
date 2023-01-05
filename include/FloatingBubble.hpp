@@ -10,7 +10,7 @@
 
 namespace yuki {
 
-class BubbleItem : public sf::CircleShape, Touchable {
+class BubbleItem : public sf::CircleShape, public Touchable {
   friend class FloatingBubble;
 
  public:
@@ -18,7 +18,13 @@ class BubbleItem : public sf::CircleShape, Touchable {
   BubbleItem(float radius) : sf::CircleShape(radius) {}
   virtual ~BubbleItem() = default;
   TOUCHABLE_OBJECT(BubbleItem)
+
+  void loadTexture(const std::string& path) {
+    texture_.loadFromFile(path);
+    setTexture(&texture_);
+  }
  private:
+  sf::Texture texture_;
 };
 
 class FloatingBubble : public sf::Drawable {
@@ -32,9 +38,9 @@ class FloatingBubble : public sf::Drawable {
         bubble_radius_(bubble_radius),
         direction_(direction) {
     for (int i = 0; i < bubble_num_; ++i) {
-      auto bubble = std::make_unique<BubbleItem>(bubble_radius);
-      bubble->setFillColor(sf::Color::Transparent);
-      bubble->setOutlineColor(sf::Color::Blue);
+      auto bubble = std::make_shared<BubbleItem>(bubble_radius);
+      bubble->setFillColor(YukiColor::Transparent_25);
+      bubble->setOutlineColor(sf::Color::Black);
       bubble->setOutlineThickness(2.f);
       bubble->setPosition(getBubblePosition(i));
       bubbles_.push_back(std::move(bubble));
@@ -59,6 +65,9 @@ class FloatingBubble : public sf::Drawable {
   const auto getBubbleRadius() const { return bubble_radius_; }
   int getIndexByPosition(const sf::Vector2f& position) const;
 
+  auto& getBubbleItems() { return bubbles_; }
+  const auto& getBubbleItems() const { return bubbles_; }
+
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
  private:
@@ -67,7 +76,7 @@ class FloatingBubble : public sf::Drawable {
   int bubble_num_;
   float bubble_radius_;
   Direction direction_;
-  std::vector<std::unique_ptr<BubbleItem>> bubbles_;
+  std::vector<std::shared_ptr<BubbleItem>> bubbles_;
 
   sf::Vector2f getBubblePosition(const int index);
   void updateBubblesPosition();

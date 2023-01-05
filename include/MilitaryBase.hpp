@@ -41,6 +41,9 @@ class MilitaryBase : public TouchableSprite {
     return floating_bubble_.getIndexByPosition(position);
   }
 
+  auto& getFloatingBubble() { return floating_bubble_; }
+  const auto& getFloatingBubble() const { return floating_bubble_; }
+
  private:
   int level = 1;
   sf::Texture texture_;
