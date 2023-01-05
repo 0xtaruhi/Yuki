@@ -98,9 +98,9 @@ void MainScene::updateInfo() {
     enemy->update();
   }
 
-  while (!message_quene_.empty()) {
-    auto message = message_quene_.front();
-    message_quene_.pop();
+  while (!message_queue_.empty()) {
+    auto message = message_queue_.front();
+    message_queue_.pop();
     switch (message) {
       case Message::GenerateOwnSoldier:
         generateSoldier();

@@ -99,6 +99,29 @@ class NormalSoldier : public Soldier {
   FloatingBubble floating_bubble_;
 };
 
+class SeniorSoldier : public Soldier {
+ public:
+  SeniorSoldier(Camp camp = Camp::Own);
+  SeniorSoldier(const sf::Vector2f& position, Camp camp = Camp::Own);
+
+  virtual ~SeniorSoldier() {}
+
+  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+  
+  virtual void update() override;
+
+private:
+  sf::Texture all_textures_;
+  sf::Vector2f place_offset_ = {0,0};
+
+  int current_frame_;
+  int previous_frame_;
+  int max_frame_;
+
+  FloatingBubble floating_bubble_;
+
+};
+
 }  // namespace yuki
 
 #endif

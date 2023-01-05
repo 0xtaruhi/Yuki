@@ -62,7 +62,7 @@ endif()
 target_link_libraries(${PROJECT_NAME}
   ${TMXLITE_LIBRARIES}
   ${SFML_LIBRARIES}
-)
+) 
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   DEBUG_POSTFIX _d

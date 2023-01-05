@@ -51,6 +51,7 @@ void StartupScene::initUi() {
   btn_start_.bindHover([this](sf::Event) { btn_start_.setFillColor(Color::Cyan); });
   btn_start_.bindLeave([this](sf::Event) { btn_start_.setFillColor(Color::White); });
 
+  /*
   // Remote Connection button
   btn_connect_.setString("Remote Connection");
   btn_connect_.setSize(Vector2f(200,50));
@@ -68,4 +69,5 @@ void StartupScene::initUi() {
   });
   btn_connect_.bindHover([this](sf::Event) { btn_connect_.setFillColor(Color::Cyan); });
   btn_connect_.bindLeave([this](sf::Event) { btn_connect_.setFillColor(Color::White); });
+  */
 }

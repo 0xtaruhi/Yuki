@@ -10,6 +10,7 @@ bool Soldier::inRange(const Vector2f& target) const {
 }
 
 void Soldier::update() {
+  
   if (is_moving_) {
     sprite_.move(getVectorSpeed(direction_, speed_));
   }

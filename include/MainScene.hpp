@@ -34,7 +34,7 @@ class MainScene : public YukiScene {
   virtual ~MainScene() {}
 
   void generateSoldier();
-  void sendMessage(const Message& message) { message_quene_.push(message); }
+  void sendMessage(const Message& message) { message_queue_.push(message); }
 
  private:
   const static sf::Vector2i kOwnSoldierBirthCoordinate;
@@ -67,7 +67,7 @@ class MainScene : public YukiScene {
   sf::Vector2f coordinateToPixel(const sf::Vector2i& coordinate);
   sf::Vector2i pixelToCoordinate(const sf::Vector2f& pixel_position);
 
-  std::queue<Message> message_quene_;
+  std::queue<Message> message_queue_;
 
 #ifdef YUKI_DEBUG
   sf::Text debug_text_;
