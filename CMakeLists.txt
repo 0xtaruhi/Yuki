@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # set the default build type to Release
-if (NOT CMAKE_BUILD_TYPE)
+if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release
     CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
     FORCE)
@@ -34,7 +34,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/include
 )
 
-set (PROJECT_SRC
+set(PROJECT_SRC
   src/Main.cpp
   src/Sodier.cpp
   src/Button.cpp
@@ -50,9 +50,10 @@ set (PROJECT_SRC
   src/MilitaryBase.cpp
   src/FloatingBubble.cpp
   src/InfoBar.cpp
+  src/InteractiveObject.cpp
 )
 
-if (WIN32)
+if(WIN32)
   add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SRC})
 else()
   add_executable(${PROJECT_NAME} ${PROJECT_SRC})
@@ -61,6 +62,10 @@ endif()
 target_link_libraries(${PROJECT_NAME}
   ${TMXLITE_LIBRARIES}
   ${SFML_LIBRARIES}
+)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  DEBUG_POSTFIX _d
 )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

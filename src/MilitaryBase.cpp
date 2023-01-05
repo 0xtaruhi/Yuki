@@ -6,7 +6,7 @@ using namespace yuki;
 using namespace sf;
 
 MilitaryBase::MilitaryBase()
-    : floating_bubble_(FloatingBubble(Vector2f(this->getPosition()), 120, 5, 15,
+    : floating_bubble_(FloatingBubble(Vector2f(this->getPosition()), 110, 4, 22,
                                       Direction::Up)) {
   initTexture();
   bindHover([this](sf::Event) { floating_bubble_visible_ = true; });
@@ -35,6 +35,7 @@ void MilitaryBase::updateTexture() {
 }
 
 bool MilitaryBase::inRange(const sf::Vector2f& position) const {
+  // return getGlobalBounds().contains(position);
   return getGlobalBounds().contains(position);
 }
 

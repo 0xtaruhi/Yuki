@@ -8,9 +8,10 @@
 #include "InteractiveObject.hpp"
 #include "StatusBar.hpp"
 #include "YukiScene.hpp"
+#include "FloatingBubble.hpp"
 
 namespace yuki {
-class Sodier : public sf::Drawable, public Touchable {
+class Sodier : public sf::Drawable, public Focusable {
  public:
   Sodier(Camp camp = Camp::Own) : camp_(camp) { health_bar_ = getHealthBar(); }
   Sodier(const sf::Vector2f& position, Camp camp = Camp::Own) : Sodier(camp) {
@@ -22,8 +23,8 @@ class Sodier : public sf::Drawable, public Touchable {
   virtual void draw(sf::RenderTarget& target,
                     sf::RenderStates states) const override = 0;
 
-  // Touchable object
-  TOUCHABLE_OBJECT(Sodier)
+  // Focusable object
+  FOCUSABLE_OBJECT(Sodier)
 
   virtual void update();
 
@@ -54,11 +55,16 @@ class Sodier : public sf::Drawable, public Touchable {
 
   void setColor(const sf::Color& color) { sprite_.setColor(color); }
 
+  void setPlaceOffset(const sf::Vector2f& offset) { place_offset_ = offset; }
+  virtual const sf::Vector2f& getPlaceOffset() const { return place_offset_; }
+
  protected:
   // sf::Sprite sprite_;
   sf::Sprite sprite_;
   sf::Vector2f health_bar_offset_ = {0, -15};
   Camp camp_;
+
+  sf::Vector2f place_offset_ = {0, 0};
 
   bool is_moving_ = false;
   Direction direction_ = Direction::Down;
@@ -84,9 +90,13 @@ class NormalSodier : public Sodier {
  private:
   sf::Texture all_textures_;
 
+  sf::Vector2f place_offset_ = {0, 0};
+
   int current_frame_;
   int previous_frame_;
   int max_frame_;
+
+  FloatingBubble floating_bubble_;
 };
 
 }  // namespace yuki

@@ -10,7 +10,6 @@
 #include "Sodier.hpp"
 #include "YukiScene.hpp"
 
-
 namespace yuki {
 
 class MainScene : public YukiScene {
@@ -20,6 +19,14 @@ class MainScene : public YukiScene {
   enum class Message {
     GenerateOwnSodier,
     OwnBaseLevelUp,
+    FocusedObjectChanged,
+  };
+
+  enum class ObjectType {
+    OwnSodier,
+    EnemySodier,
+    OwnBase,
+    EnemyBase,
   };
 
  public:
@@ -30,6 +37,9 @@ class MainScene : public YukiScene {
   void sendMessage(const Message& message) { message_quene_.push(message); }
 
  private:
+  const static sf::Vector2i kOwnSodierBirthCoordinate;
+  const static sf::Vector2i kEnemySodierBirthCoordinate;
+
   Map map_;
   MilitaryBase own_base_;
   MilitaryBase enemy_base_;
@@ -40,6 +50,9 @@ class MainScene : public YukiScene {
   std::vector<std::shared_ptr<Sodier>> soldiers_;
   std::vector<std::shared_ptr<Sodier>> enemies_;
 
+  std::shared_ptr<Focusable> focused_object_;
+  ObjectType focused_object_type_;
+
   void initUi();
   void initMap();
   void initBuildings();
@@ -47,7 +60,7 @@ class MainScene : public YukiScene {
 
   void setMoney(int money);
 
-  std::shared_ptr<yuki::Sodier> getDefaultSodier();
+  std::shared_ptr<yuki::Sodier> getDefaultSodier(Camp camp = Camp::Own);
 
   void eraseDeadSodier();
 

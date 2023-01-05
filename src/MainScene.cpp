@@ -6,11 +6,20 @@
 using namespace yuki;
 using namespace sf;
 
-std::shared_ptr<Sodier> MainScene::getDefaultSodier() {
-  auto sodier = std::make_shared<NormalSodier>();
+const sf::Vector2i MainScene::kOwnSodierBirthCoordinate = {3, 17};
+const sf::Vector2i MainScene::kEnemySodierBirthCoordinate = {25, 17};
+
+std::shared_ptr<Sodier> MainScene::getDefaultSodier(Camp camp) {
+  auto sodier = std::make_shared<NormalSodier>(camp);
   registerTouchableObject(sodier);
-  sodier->setPosition(sf::Vector2f(100, 100));
+
+  auto birth_coordinate = camp == Camp::Own ? kOwnSodierBirthCoordinate
+                                            : kEnemySodierBirthCoordinate;
+  sodier->setPosition(coordinateToPixel(birth_coordinate));
+
   sodier->setSpeed(1.f);
+  sodier->setDirection(Direction::Up);
+
   sodier->setMoving(true);
   sodier->setMaxHealth(100.f);
   sodier->setHealth(100.f);
@@ -28,19 +37,19 @@ int MainScene::show() { return YukiScene::show(); }
 void MainScene::processEvent(sf::Event event) {
   YukiScene::processEvent(event);
   if (event.type == sf::Event::KeyPressed) {
-    if (event.key.code == sf::Keyboard::G) {
-      // generateSodier();
-      sendMessage(Message::GenerateOwnSodier);
-    } else if (event.key.code == sf::Keyboard::W) {
-      soldiers_[0]->setDirection(Direction::Up);
-    } else if (event.key.code == sf::Keyboard::S) {
-      soldiers_[0]->setDirection(Direction::Down);
-    } else if (event.key.code == sf::Keyboard::A) {
-      soldiers_[0]->setDirection(Direction::Left);
-    } else if (event.key.code == sf::Keyboard::D) {
-      soldiers_[0]->setDirection(Direction::Right);
-    } else if (event.key.code == sf::Keyboard::Space) {
-      soldiers_[0]->setMoving(!soldiers_[0]->isMoving());
+    if (focused_object_type_ == ObjectType::OwnSodier) {
+      auto sodier = std::dynamic_pointer_cast<Sodier>(focused_object_);
+      if (event.key.code == sf::Keyboard::W) {
+        sodier->setDirection(Direction::Up);
+      } else if (event.key.code == sf::Keyboard::S) {
+        sodier->setDirection(Direction::Down);
+      } else if (event.key.code == sf::Keyboard::A) {
+        sodier->setDirection(Direction::Left);
+      } else if (event.key.code == sf::Keyboard::D) {
+        sodier->setDirection(Direction::Right);
+      } else if (event.key.code == sf::Keyboard::Space) {
+        sodier->setMoving(!sodier->isMoving());
+      }
     }
   }
 
@@ -134,13 +143,23 @@ void MainScene::eraseDeadSodier() {
 void MainScene::generateSodier() {
   auto new_sodier = getDefaultSodier();
   new_sodier->bindHover([=](sf::Event) {
-    new_sodier->setColor({255, 255, 255, 192});
+    if (!new_sodier->isFocused()) {
+      new_sodier->setColor({255, 255, 255, 192});
+    }
   });
   new_sodier->bindLeave([=](sf::Event) {
-    new_sodier->setColor({255, 255, 255, 255});
+    if (!new_sodier->isFocused()) {
+      new_sodier->setColor({255, 255, 255, 255});
+    }
   });
-  new_sodier->bindClick([=](sf::Event) {
+  new_sodier->bindClick([=](sf::Event) {});
+  new_sodier->bindFocus([=](sf::Event) {
     new_sodier->setColor({255, 0, 200, 255});
+    focused_object_ = new_sodier;
+    focused_object_type_ = ObjectType::OwnSodier;
+  });
+  new_sodier->bindUnfocus([=](sf::Event) {
+    new_sodier->setColor({255, 255, 255, 255});
   });
   soldiers_.push_back(std::move(new_sodier));
 }
@@ -210,6 +229,7 @@ void MainScene::initMap() {
   setTile(25, 7, TileCategory::Road, 11);
 
   // trees
+  srand(0x35d5d);
   for (int i = 0; i != 30; ++i) {
     auto rand_cor = getRandomCoordinate();
     setTile(rand_cor.x, rand_cor.y, TileCategory::Tree, 1 + rand() % 15);
@@ -234,6 +254,26 @@ void MainScene::initBuildings() {
   registerTouchableObject(std::shared_ptr<Touchable>(&own_base_));
   registerTouchableObject(std::shared_ptr<Touchable>(&enemy_base_));
 
+  // floating bubble init
+  auto& own_base_fb = own_base_.getFloatingBubble();
+  auto& own_base_fb_items = own_base_fb.getBubbleItems();
+
+  own_base_fb_items[0]->loadTexture("assets/res/update_base.jpg");
+
+  for (const auto& item : own_base_fb_items) {
+    item->bindHover([=](sf::Event) {
+      // set semi-transparent
+      item->setFillColor(YukiColor::Normal);
+    });
+    item->bindLeave([=](sf::Event) {
+      // set opaque
+      item->setFillColor(YukiColor::Transparent_25);
+    });
+
+    registerTouchableObject(item);
+  }
+
+  // Bind Floating Bubble Actions
   own_base_.bindClick([=](sf::Event) {
     const auto& mouse_pos = sf::Mouse::getPosition(window_);
     auto bubble_index = own_base_.getFloatingBubbleIndexByPosition(
