@@ -7,7 +7,7 @@
 #include "InfoBar.hpp"
 #include "Map.hpp"
 #include "MilitaryBase.hpp"
-#include "Sodier.hpp"
+#include "Soldier.hpp"
 #include "YukiScene.hpp"
 
 namespace yuki {
@@ -17,14 +17,14 @@ class MainScene : public YukiScene {
 
  public:
   enum class Message {
-    GenerateOwnSodier,
+    GenerateOwnSoldier,
     OwnBaseLevelUp,
     FocusedObjectChanged,
   };
 
   enum class ObjectType {
-    OwnSodier,
-    EnemySodier,
+    OwnSoldier,
+    EnemySoldier,
     OwnBase,
     EnemyBase,
   };
@@ -33,12 +33,12 @@ class MainScene : public YukiScene {
   MainScene(sf::RenderWindow& window);
   virtual ~MainScene() {}
 
-  void generateSodier();
+  void generateSoldier();
   void sendMessage(const Message& message) { message_quene_.push(message); }
 
  private:
-  const static sf::Vector2i kOwnSodierBirthCoordinate;
-  const static sf::Vector2i kEnemySodierBirthCoordinate;
+  const static sf::Vector2i kOwnSoldierBirthCoordinate;
+  const static sf::Vector2i kEnemySoldierBirthCoordinate;
 
   Map map_;
   MilitaryBase own_base_;
@@ -47,8 +47,8 @@ class MainScene : public YukiScene {
 
   int money_;
 
-  std::vector<std::shared_ptr<Sodier>> soldiers_;
-  std::vector<std::shared_ptr<Sodier>> enemies_;
+  std::vector<std::shared_ptr<Soldier>> soldiers_;
+  std::vector<std::shared_ptr<Soldier>> enemies_;
 
   std::shared_ptr<Focusable> focused_object_;
   ObjectType focused_object_type_;
@@ -60,9 +60,9 @@ class MainScene : public YukiScene {
 
   void setMoney(int money);
 
-  std::shared_ptr<yuki::Sodier> getDefaultSodier(Camp camp = Camp::Own);
+  std::shared_ptr<yuki::Soldier> getDefaultSoldier(Camp camp = Camp::Own);
 
-  void eraseDeadSodier();
+  void eraseDeadSoldier();
 
   sf::Vector2f coordinateToPixel(const sf::Vector2i& coordinate);
   sf::Vector2i pixelToCoordinate(const sf::Vector2f& pixel_position);

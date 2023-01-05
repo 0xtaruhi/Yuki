@@ -1,15 +1,15 @@
-#include "Sodier.hpp"
+#include "Soldier.hpp"
 
 #include <iostream>
 
 using namespace yuki;
 using namespace sf;
 
-bool Sodier::inRange(const Vector2f& target) const {
+bool Soldier::inRange(const Vector2f& target) const {
   return sprite_.getGlobalBounds().contains(target);
 }
 
-void Sodier::update() {
+void Soldier::update() {
   if (is_moving_) {
     sprite_.move(getVectorSpeed(direction_, speed_));
   }
@@ -19,7 +19,7 @@ void Sodier::update() {
                            sprite_.getPosition().y + health_bar_offset_.y});
 }
 
-NormalSodier::NormalSodier(Camp camp) : Sodier(camp) {
+NormalSoldier::NormalSoldier(Camp camp) : Soldier(camp) {
   current_frame_ = 0;
   max_frame_ = 3;
 
@@ -39,19 +39,19 @@ NormalSodier::NormalSodier(Camp camp) : Sodier(camp) {
   sprite_.setTextureRect(sf::IntRect(0, 0, 42, 42));
 }
 
-NormalSodier::NormalSodier(const sf::Vector2f& position, Camp camp)
-    : NormalSodier(camp) {
+NormalSoldier::NormalSoldier(const sf::Vector2f& position, Camp camp)
+    : NormalSoldier(camp) {
   setPosition(position);
 }
 
-void NormalSodier::draw(sf::RenderTarget& target,
+void NormalSoldier::draw(sf::RenderTarget& target,
                         sf::RenderStates states) const {
   target.draw(sprite_, states);
   target.draw(health_bar_, states);
 }
 
-void NormalSodier::update() {
-  Sodier::update();
+void NormalSoldier::update() {
+  Soldier::update();
 
   int direct_int;
   switch (direction_) {

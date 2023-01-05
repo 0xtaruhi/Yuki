@@ -11,20 +11,20 @@
 #include "FloatingBubble.hpp"
 
 namespace yuki {
-class Sodier : public sf::Drawable, public Focusable {
+class Soldier : public sf::Drawable, public Focusable {
  public:
-  Sodier(Camp camp = Camp::Own) : camp_(camp) { health_bar_ = getHealthBar(); }
-  Sodier(const sf::Vector2f& position, Camp camp = Camp::Own) : Sodier(camp) {
+  Soldier(Camp camp = Camp::Own) : camp_(camp) { health_bar_ = getHealthBar(); }
+  Soldier(const sf::Vector2f& position, Camp camp = Camp::Own) : Soldier(camp) {
     setPosition(position);
   }
 
-  virtual ~Sodier() {}
+  virtual ~Soldier() {}
 
   virtual void draw(sf::RenderTarget& target,
                     sf::RenderStates states) const override = 0;
 
   // Focusable object
-  FOCUSABLE_OBJECT(Sodier)
+  FOCUSABLE_OBJECT(Soldier)
 
   virtual void update();
 
@@ -75,12 +75,12 @@ class Sodier : public sf::Drawable, public Focusable {
   sf::Clock clock_;
 };
 
-class NormalSodier : public Sodier {
+class NormalSoldier : public Soldier {
  public:
-  NormalSodier(Camp camp = Camp::Own);
-  NormalSodier(const sf::Vector2f& position, Camp camp = Camp::Own);
+  NormalSoldier(Camp camp = Camp::Own);
+  NormalSoldier(const sf::Vector2f& position, Camp camp = Camp::Own);
 
-  virtual ~NormalSodier() {}
+  virtual ~NormalSoldier() {}
 
   virtual void draw(sf::RenderTarget& target,
                     sf::RenderStates states) const override;

@@ -36,7 +36,7 @@ include_directories(
 
 set(PROJECT_SRC
   src/Main.cpp
-  src/Sodier.cpp
+  src/Soldier.cpp
   src/Button.cpp
   src/InputProcessEngine.cpp
   src/Elementum.cpp

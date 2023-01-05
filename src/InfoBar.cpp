@@ -24,15 +24,16 @@ void InfoBar::setPosition(const sf::Vector2f& position) {
 
 void InfoBar::initTextures() {
   icon_money_texture_.loadFromFile("assets/res/blue_stone.png");
+  background_texture_.loadFromFile("assets/res/ui_money.png");
 }
 
 void InfoBar::initUi() {
   icon_money_.setTexture(icon_money_texture_);
-  // background_.setTexture(&background_texture_);
+  background_.setTexture(&background_texture_);
   // * Temporary
-  background_.setFillColor(Color::White);
-  background_.setOutlineColor(Color::Black);
-  background_.setOutlineThickness(3.f);
+  // background_.setFillColor(Color::White);
+  // background_.setOutlineColor(Color::Black);
+  // background_.setOutlineThickness(3.f);
   // *
 
   text_money_.setFont(GameFont::DefaultFont);

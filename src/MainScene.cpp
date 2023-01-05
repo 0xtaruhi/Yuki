@@ -6,24 +6,24 @@
 using namespace yuki;
 using namespace sf;
 
-const sf::Vector2i MainScene::kOwnSodierBirthCoordinate = {3, 17};
-const sf::Vector2i MainScene::kEnemySodierBirthCoordinate = {25, 17};
+const sf::Vector2i MainScene::kOwnSoldierBirthCoordinate = {3, 17};
+const sf::Vector2i MainScene::kEnemySoldierBirthCoordinate = {25, 17};
 
-std::shared_ptr<Sodier> MainScene::getDefaultSodier(Camp camp) {
-  auto sodier = std::make_shared<NormalSodier>(camp);
-  registerTouchableObject(sodier);
+std::shared_ptr<Soldier> MainScene::getDefaultSoldier(Camp camp) {
+  auto soldier = std::make_shared<NormalSoldier>(camp);
+  registerTouchableObject(soldier);
 
-  auto birth_coordinate = camp == Camp::Own ? kOwnSodierBirthCoordinate
-                                            : kEnemySodierBirthCoordinate;
-  sodier->setPosition(coordinateToPixel(birth_coordinate));
+  auto birth_coordinate = camp == Camp::Own ? kOwnSoldierBirthCoordinate
+                                            : kEnemySoldierBirthCoordinate;
+  soldier->setPosition(coordinateToPixel(birth_coordinate));
 
-  sodier->setSpeed(1.f);
-  sodier->setDirection(Direction::Up);
+  soldier->setSpeed(1.f);
+  soldier->setDirection(Direction::Up);
 
-  sodier->setMoving(true);
-  sodier->setMaxHealth(100.f);
-  sodier->setHealth(100.f);
-  return sodier;
+  soldier->setMoving(true);
+  soldier->setMaxHealth(100.f);
+  soldier->setHealth(100.f);
+  return soldier;
 }
 
 MainScene::MainScene(sf::RenderWindow& window)
@@ -37,18 +37,18 @@ int MainScene::show() { return YukiScene::show(); }
 void MainScene::processEvent(sf::Event event) {
   YukiScene::processEvent(event);
   if (event.type == sf::Event::KeyPressed) {
-    if (focused_object_type_ == ObjectType::OwnSodier) {
-      auto sodier = std::dynamic_pointer_cast<Sodier>(focused_object_);
+    if (focused_object_type_ == ObjectType::OwnSoldier) {
+      auto soldier = std::dynamic_pointer_cast<Soldier>(focused_object_);
       if (event.key.code == sf::Keyboard::W) {
-        sodier->setDirection(Direction::Up);
+        soldier->setDirection(Direction::Up);
       } else if (event.key.code == sf::Keyboard::S) {
-        sodier->setDirection(Direction::Down);
+        soldier->setDirection(Direction::Down);
       } else if (event.key.code == sf::Keyboard::A) {
-        sodier->setDirection(Direction::Left);
+        soldier->setDirection(Direction::Left);
       } else if (event.key.code == sf::Keyboard::D) {
-        sodier->setDirection(Direction::Right);
+        soldier->setDirection(Direction::Right);
       } else if (event.key.code == sf::Keyboard::Space) {
-        sodier->setMoving(!sodier->isMoving());
+        soldier->setMoving(!soldier->isMoving());
       }
     }
   }
@@ -102,17 +102,17 @@ void MainScene::updateInfo() {
     auto message = message_quene_.front();
     message_quene_.pop();
     switch (message) {
-      case Message::GenerateOwnSodier:
-        generateSodier();
+      case Message::GenerateOwnSoldier:
+        generateSoldier();
         break;
       default:
         break;
     }
   }
-  eraseDeadSodier();
+  eraseDeadSoldier();
 }
 
-void MainScene::eraseDeadSodier() {
+void MainScene::eraseDeadSoldier() {
   const auto& window_size = window_.getSize();
 
   auto left_bound = -map_.getTileSize().x;
@@ -120,15 +120,15 @@ void MainScene::eraseDeadSodier() {
   auto up_bound = -map_.getTileSize().y;
   auto down_bound = window_size.y;
 
-  auto isDead = [=](const std::shared_ptr<Sodier>& sodier) {
-    if (sodier->getHealth() <= 0.f) {
+  auto isDead = [=](const std::shared_ptr<Soldier>& soldier) {
+    if (soldier->getHealth() <= 0.f) {
       return true;
     }
 
     // out of window
-    const auto& sodier_pos = sodier->getPosition();
-    if (sodier_pos.x < left_bound || sodier_pos.x >= right_bound ||
-        sodier_pos.y < up_bound || sodier_pos.y >= down_bound) {
+    const auto& soldier_pos = soldier->getPosition();
+    if (soldier_pos.x < left_bound || soldier_pos.x >= right_bound ||
+        soldier_pos.y < up_bound || soldier_pos.y >= down_bound) {
       return true;
     }
     return false;
@@ -140,28 +140,28 @@ void MainScene::eraseDeadSodier() {
                  enemies_.end());
 }
 
-void MainScene::generateSodier() {
-  auto new_sodier = getDefaultSodier();
-  new_sodier->bindHover([=](sf::Event) {
-    if (!new_sodier->isFocused()) {
-      new_sodier->setColor({255, 255, 255, 192});
+void MainScene::generateSoldier() {
+  auto new_soldier = getDefaultSoldier();
+  new_soldier->bindHover([=](sf::Event) {
+    if (!new_soldier->isFocused()) {
+      new_soldier->setColor({255, 255, 255, 192});
     }
   });
-  new_sodier->bindLeave([=](sf::Event) {
-    if (!new_sodier->isFocused()) {
-      new_sodier->setColor({255, 255, 255, 255});
+  new_soldier->bindLeave([=](sf::Event) {
+    if (!new_soldier->isFocused()) {
+      new_soldier->setColor({255, 255, 255, 255});
     }
   });
-  new_sodier->bindClick([=](sf::Event) {});
-  new_sodier->bindFocus([=](sf::Event) {
-    new_sodier->setColor({255, 0, 200, 255});
-    focused_object_ = new_sodier;
-    focused_object_type_ = ObjectType::OwnSodier;
+  new_soldier->bindClick([=](sf::Event) {});
+  new_soldier->bindFocus([=](sf::Event) {
+    new_soldier->setColor({255, 0, 200, 255});
+    focused_object_ = new_soldier;
+    focused_object_type_ = ObjectType::OwnSoldier;
   });
-  new_sodier->bindUnfocus([=](sf::Event) {
-    new_sodier->setColor({255, 255, 255, 255});
+  new_soldier->bindUnfocus([=](sf::Event) {
+    new_soldier->setColor({255, 255, 255, 255});
   });
-  soldiers_.push_back(std::move(new_sodier));
+  soldiers_.push_back(std::move(new_soldier));
 }
 
 void MainScene::initUi() {
@@ -280,7 +280,7 @@ void MainScene::initBuildings() {
         Vector2f(mouse_pos.x, mouse_pos.y));
     if (bubble_index == -1) return;
     if (bubble_index == 2) {
-      sendMessage(Message::GenerateOwnSodier);
+      sendMessage(Message::GenerateOwnSoldier);
     }
   });
 }

@@ -16,6 +16,7 @@ class StartupScene : public YukiScene {
 
  private:
   Button btn_start_;
+  Button btn_connect_;
   sf::Sprite background_;
   sf::Texture background_texture_;
 
