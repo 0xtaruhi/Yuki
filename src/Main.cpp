@@ -12,7 +12,9 @@ int main() {
   settings.antialiasingLevel = 8;
 
   sf::Music bgm;
+  sf::Music main_bgm;
   bgm.setLoop(true);
+  main_bgm.setLoop(true);
 
   sf::RenderWindow window(sf::VideoMode(kWindowWidth, kWindowHeight), "Yuki");
   window.setFramerateLimit(60);
@@ -25,7 +27,7 @@ int main() {
 
   auto scene_ret = 0;
   {
-    bgm.openFromFile("assets/music/bgm.ogg");
+    bgm.openFromFile("assets/music/bgm1.ogg");
     bgm.play();
     auto startup_scene = std::make_unique<StartupScene>(window);
     scene_ret = startup_scene->show();
@@ -33,8 +35,11 @@ int main() {
   }
 
   if (scene_ret == 1) {
+    main_bgm.openFromFile("assets/music/main_bgm1.ogg");
+    main_bgm.play();
     auto main_scene = std::make_unique<MainScene>(window);
     main_scene->show();
+    main_bgm.stop();
   }
 
   return 0;
