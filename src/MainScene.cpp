@@ -12,10 +12,10 @@ const sf::Vector2i MainScene::kEnemySoldierBirthCoordinate = {25, 17};
 // const sf::Vector2i MainScene::kOwnBaseCoordinate = {3, 18};
 const sf::Vector2i MainScene::kEnemyBaseCoordinate = {26, 14};
 
-std::shared_ptr<Soldier> MainScene::generateSoldier(const std::string& name,
+std::unique_ptr<Soldier> MainScene::generateSoldier(const std::string& name,
                                                     Camp camp) {
   auto soldier = getSoldier(name, camp);
-  registerTouchableObject(soldier);
+  registerTouchableObject(soldier.get());
 
   auto birth_coordinate = camp == Camp::Own ? kOwnSoldierBirthCoordinate
                                             : kEnemySoldierBirthCoordinate;
@@ -119,7 +119,7 @@ void MainScene::eraseDeadSoldier() {
   auto up_bound = -map_.getTileSize().y;
   auto down_bound = window_size.y;
 
-  auto isDead = [=](const std::shared_ptr<Soldier>& soldier) {
+  auto isDead = [=](const std::unique_ptr<Soldier>& soldier) {
     if (soldier->getHealth() <= 0.f) {
       return true;
     }
@@ -153,9 +153,9 @@ void MainScene::sodierAdjustDirection() {
     return map_.getTile(coordinate).getTileInfo().category ==
            TileCategory::Road;
   };
-  auto getLeftCoordinate = [=](const sf::Vector2i& coordinate) {
-    return sf::Vector2i(coordinate.x - 1, coordinate.y);
-  };
+  // auto getLeftCoordinate = [=](const sf::Vector2i& coordinate) {
+  //   return sf::Vector2i(coordinate.x - 1, coordinate.y);
+  // };
   auto getRightCoordinate = [=](const sf::Vector2i& coordinate) {
     return sf::Vector2i(coordinate.x + 1, coordinate.y);
   };
@@ -219,24 +219,26 @@ void MainScene::sodierAdjustDirection() {
 
 void MainScene::generateSoldier() {
   auto new_soldier = generateSoldier("NormalSoldier", Camp::Own);
+
+  auto new_soldier_ptr = new_soldier.get();
   new_soldier->bindHover([=](sf::Event) {
-    if (!new_soldier->isFocused()) {
-      new_soldier->setColor({255, 255, 255, 192});
+    if (!new_soldier_ptr->isFocused()) {
+      new_soldier_ptr->setColor({255, 255, 255, 192});
     }
   });
   new_soldier->bindLeave([=](sf::Event) {
-    if (!new_soldier->isFocused()) {
-      new_soldier->setColor({255, 255, 255, 255});
+    if (!new_soldier_ptr->isFocused()) {
+      new_soldier_ptr->setColor({255, 255, 255, 255});
     }
   });
   new_soldier->bindClick([=](sf::Event) {});
   new_soldier->bindFocus([=](sf::Event) {
-    new_soldier->setColor({255, 0, 200, 255});
-    focused_object_ = new_soldier;
+    new_soldier_ptr->setColor({255, 0, 200, 255});
+    focused_object_ = new_soldier_ptr;
     focused_object_type_ = ObjectType::OwnSoldier;
   });
   new_soldier->bindUnfocus([=](sf::Event) {
-    new_soldier->setColor({255, 255, 255, 255});
+    new_soldier_ptr->setColor({255, 255, 255, 255});
   });
   soldiers_.push_back(std::move(new_soldier));
 }
@@ -382,12 +384,12 @@ void MainScene::initMap() {
 }
 
 void MainScene::initBuildings() {
-  own_base_ = std::make_shared<MilitaryBase>();
-  enemy_base_ = std::make_shared<MilitaryBase>();
+  own_base_ = std::make_unique<MilitaryBase>();
+  enemy_base_ = std::make_unique<MilitaryBase>();
 
   own_base_->setPosition(coordinateToPixel({2, 14}));
   enemy_base_->setPosition(coordinateToPixel({24, 14}));
-  registerTouchableObject(own_base_);
+  registerTouchableObject(own_base_.get());
   // registerTouchableObject(std::shared_ptr<Touchable>(&enemy_base_));
 
   // floating bubble init
@@ -397,16 +399,17 @@ void MainScene::initBuildings() {
   own_base_fb_items[0]->loadTexture("assets/res/update_base.jpg");
 
   for (const auto& item : own_base_fb_items) {
+    auto item_ptr = item.get();
     item->bindHover([=](sf::Event) {
       // set semi-transparent
-      item->setFillColor(YukiColor::Normal);
+      item_ptr->setFillColor(YukiColor::Normal);
     });
     item->bindLeave([=](sf::Event) {
       // set opaque
-      item->setFillColor(YukiColor::Transparent_25);
+      item_ptr->setFillColor(YukiColor::Transparent_25);
     });
 
-    registerTouchableObject(item);
+    registerTouchableObject(item_ptr);
   }
 
   // Bind Floating Bubble Actions
@@ -423,7 +426,7 @@ void MainScene::initBuildings() {
 
 void MainScene::initInfoHint() {
   // info bar
-  info_bar_ = std::make_shared<InfoBar>();
+  info_bar_ = std::make_unique<InfoBar>();
 
   info_bar_->setSize(Vector2f{168.f, 32.f});
   info_bar_->setPosition(
@@ -431,8 +434,8 @@ void MainScene::initInfoHint() {
   setMoney(150);
 
   // skill bar
-  skill_bar_ = std::make_shared<SkillBar<3>>();
-  registerTouchableObject(skill_bar_);
+  skill_bar_ = std::make_unique<SkillBar<3>>();
+  registerTouchableObject(skill_bar_.get());
 }
 
 void MainScene::setMoney(int money) {

@@ -10,8 +10,8 @@ using namespace sf;
 
 StartupScene::StartupScene(sf::RenderWindow& window) : YukiScene(window) {
   initUi();
-  registerTouchableObject(std::make_shared<Button>(btn_start_));
-  registerTouchableObject(std::make_shared<Button>(btn_connect_));
+  registerTouchableObject(&btn_start_);
+  registerTouchableObject(&btn_connect_);
 }
 
 int StartupScene::show() { return YukiScene::show(); }

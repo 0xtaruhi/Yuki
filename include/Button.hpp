@@ -22,7 +22,7 @@ class Button : public sf::Drawable, public Touchable {
   // template <typename... Args>
   // Button(YukiScene& scene, Args&&... args)
   //     : Button(std::forward<Args>(args)...) {
-  //   scene.registerTouchableObject(std::shared_ptr<Touchable>(this));
+  //   scene.registerTouchableObject(this);
   // }
 
   virtual ~Button();

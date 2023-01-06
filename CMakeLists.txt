@@ -17,7 +17,7 @@ endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-g -D_DEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror")
 
 # set cmake module path
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -27,7 +27,7 @@ set(SFML_DIR deps/SFML-2.5.1/lib/cmake/SFML)
 
 find_package(SFML 2.5.1 COMPONENTS graphics audio REQUIRED)
 
-set(SFML_LIBRARIES sfml-graphics sfml-window sfml-system)
+set(SFML_LIBRARIES sfml-graphics sfml-window sfml-system sfml-audio)
 
 include_directories(
   ${SFML_INCLUDE_DIR}

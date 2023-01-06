@@ -2,7 +2,9 @@
 #define MILITARY_BASE_HPP
 
 #include "FloatingBubble.hpp"
+#include "StatusBar.hpp"
 #include "TouchableSprite.hpp"
+
 
 namespace yuki {
 
@@ -10,7 +12,7 @@ class MilitaryBase : public TouchableSprite {
   TOUCHABLE_OBJECT(MilitaryBase)
 
  public:
-  MilitaryBase();
+  MilitaryBase(Camp camp = Camp::Own);
   virtual ~MilitaryBase() {}
 
   void levelUp() {
@@ -33,6 +35,11 @@ class MilitaryBase : public TouchableSprite {
   void setFloatingBubbleVisible(bool visible) {
     floating_bubble_visible_ = visible;
   }
+  constexpr auto getFloatingBubbleVisible() const {
+    return floating_bubble_visible_;
+  }
+  void setHealthBarVisible(bool visible) { health_bar_visible_ = visible; }
+  constexpr auto getHealthBarVisible() const { return health_bar_visible_; }
 
   int getFloatingBubbleIndexByPosition(const sf::Vector2f& position) {
     if (!floating_bubble_visible_) {
@@ -45,10 +52,13 @@ class MilitaryBase : public TouchableSprite {
   const auto& getFloatingBubble() const { return floating_bubble_; }
 
  private:
+  Camp camp_;
   int level = 1;
   sf::Texture texture_;
   FloatingBubble floating_bubble_;
   bool floating_bubble_visible_ = false;
+  StatusBar health_bar_;
+  bool health_bar_visible_ = false;
 
   void initTexture();
   void updateTexture();

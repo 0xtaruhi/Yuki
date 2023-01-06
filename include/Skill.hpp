@@ -104,7 +104,7 @@ template <std::size_t N>
 void SkillBar<N>::updatePosition() {
   const float box_length = 2 * icon_radius_ + 2 * kSkillIconBorderDistance;
 
-  for (int i = 0; i != skills_.size(); ++i) {
+  for (std::size_t i = 0; i != skills_.size(); ++i) {
     boxes_[i].setPosition(position_.x + i * box_length, position_.y);
 
     skills_[i].setPosition(

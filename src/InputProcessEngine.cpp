@@ -9,13 +9,11 @@ MouseEventProcessEngine::MouseEventProcessEngine() {}
 
 MouseEventProcessEngine::~MouseEventProcessEngine() {}
 
-void MouseEventProcessEngine::registerTouchableObject(
-    std::shared_ptr<Touchable> object) {
+void MouseEventProcessEngine::registerTouchableObject(Touchable* object) {
   touchable_objects_.push_back(object);
 }
 
-void MouseEventProcessEngine::unregisterTouchableObject(
-    std::shared_ptr<Touchable> object) {
+void MouseEventProcessEngine::unregisterTouchableObject(Touchable* object) {
   for (auto it = touchable_objects_.begin(); it != touchable_objects_.end();
        ++it) {
     if (*it == object) {
