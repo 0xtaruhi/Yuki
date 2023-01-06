@@ -54,6 +54,7 @@ set(PROJECT_SRC
   src/Attack.cpp
   src/CircularSector.cpp
   src/Skill.cpp
+  src/ElementumPanel.cpp
 )
 
 if(WIN32)

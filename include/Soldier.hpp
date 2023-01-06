@@ -4,12 +4,14 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
+#include "Attack.hpp"
 #include "Basic.hpp"
 #include "Elementum.hpp"
 #include "FloatingBubble.hpp"
 #include "InteractiveObject.hpp"
 #include "StatusBar.hpp"
 #include "YukiScene.hpp"
+
 
 namespace yuki {
 class Soldier : public sf::Drawable, public Focusable {
@@ -80,6 +82,13 @@ class Soldier : public sf::Drawable, public Focusable {
   auto& getFloatingBubble() { return floating_bubble_; }
   const auto& getFloatingBubble() const { return floating_bubble_; }
 
+  void setElementum(const Elementum& elementum) { elementum_ = elementum; }
+  const auto& getElementum() const { return elementum_; }
+  void setElementumType(const ElementumType& elementum_type) {
+    elementum_.type = elementum_type;
+  }
+  constexpr auto getElementumType() const { return elementum_.type; }
+
  protected:
   // sf::Sprite sprite_;
   sf::Sprite sprite_;
@@ -121,7 +130,7 @@ class NormalSoldier : public Soldier {
   int previous_frame_;
   int max_frame_;
 
-  FloatingBubble floating_bubble_;
+  // FloatingBubble floating_bubble_;
 };
 
 class SeniorSoldier : public Soldier {
@@ -131,20 +140,20 @@ class SeniorSoldier : public Soldier {
 
   virtual ~SeniorSoldier() {}
 
-  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-  
+  virtual void draw(sf::RenderTarget& target,
+                    sf::RenderStates states) const override;
+
   virtual void update() override;
 
-private:
+ private:
   sf::Texture all_textures_;
-  sf::Vector2f place_offset_ = {0,0};
+  sf::Vector2f place_offset_ = {0, 0};
 
   int current_frame_;
   int previous_frame_;
   int max_frame_;
 
   FloatingBubble floating_bubble_;
-
 };
 std::unique_ptr<NormalSoldier> getNormalSoldier(Camp camp = Camp::Own);
 std::unique_ptr<Soldier> getSoldier(const std::string& name,
