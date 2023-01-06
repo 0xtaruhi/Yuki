@@ -38,7 +38,7 @@ class FloatingBubble : public sf::Drawable {
         bubble_radius_(bubble_radius),
         direction_(direction) {
     for (int i = 0; i < bubble_num_; ++i) {
-      auto bubble = std::make_shared<BubbleItem>(bubble_radius);
+      auto bubble = std::make_unique<BubbleItem>(bubble_radius);
       bubble->setFillColor(YukiColor::Transparent_25);
       bubble->setOutlineColor(sf::Color::Black);
       bubble->setOutlineThickness(2.f);
@@ -76,7 +76,7 @@ class FloatingBubble : public sf::Drawable {
   int bubble_num_;
   float bubble_radius_;
   Direction direction_;
-  std::vector<std::shared_ptr<BubbleItem>> bubbles_;
+  std::vector<std::unique_ptr<BubbleItem>> bubbles_;
 
   sf::Vector2f getBubblePosition(const int index);
   void updateBubblesPosition();

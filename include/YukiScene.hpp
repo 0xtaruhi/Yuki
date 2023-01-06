@@ -32,7 +32,7 @@ class YukiScene {
   yuki::MouseEventProcessEngine mouse_event_engine_;
   Notify notify_;
 
-  void registerTouchableObject(std::shared_ptr<Touchable> object) {
+  void registerTouchableObject(Touchable* object) {
     mouse_event_engine_.registerTouchableObject(object);
   }
 

@@ -146,8 +146,8 @@ private:
   FloatingBubble floating_bubble_;
 
 };
-std::shared_ptr<NormalSoldier> getNormalSoldier(Camp camp = Camp::Own);
-std::shared_ptr<Soldier> getSoldier(const std::string& name,
+std::unique_ptr<NormalSoldier> getNormalSoldier(Camp camp = Camp::Own);
+std::unique_ptr<Soldier> getSoldier(const std::string& name,
                                     Camp camp = Camp::Own);
 
 }  // namespace yuki

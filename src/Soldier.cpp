@@ -109,8 +109,8 @@ void NormalSoldier::update() {
   }
 }
 
-std::shared_ptr<NormalSoldier> yuki::getNormalSoldier(Camp camp) {
-  auto soldier = std::make_shared<NormalSoldier>(camp);
+std::unique_ptr<NormalSoldier> yuki::getNormalSoldier(Camp camp) {
+  auto soldier = std::make_unique<NormalSoldier>(camp);
 
   soldier->setSpeed(1.f);
   soldier->setDirection(Direction::Up);
@@ -122,7 +122,7 @@ std::shared_ptr<NormalSoldier> yuki::getNormalSoldier(Camp camp) {
   return soldier;
 }
 
-std::shared_ptr<Soldier> yuki::getSoldier(const std::string& name, Camp camp) {
+std::unique_ptr<Soldier> yuki::getSoldier(const std::string& name, Camp camp) {
   if (name == "NormalSoldier") {
     return getNormalSoldier(camp);
   }

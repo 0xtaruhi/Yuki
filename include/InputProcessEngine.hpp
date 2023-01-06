@@ -14,13 +14,13 @@ class MouseEventProcessEngine {
   MouseEventProcessEngine();
   virtual ~MouseEventProcessEngine();
 
-  void registerTouchableObject(std::shared_ptr<Touchable> object);
-  void unregisterTouchableObject(std::shared_ptr<Touchable> object);
+  void registerTouchableObject(Touchable* object);
+  void unregisterTouchableObject(Touchable* object);
 
   void processEvent(sf::Event event);
 
  private:
-  std::vector<std::shared_ptr<Touchable>> touchable_objects_;
+  std::vector<Touchable*> touchable_objects_;
 };
 
 }  // namespace yuki
