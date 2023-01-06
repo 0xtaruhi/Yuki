@@ -548,7 +548,7 @@ void MainScene::initButton() {
   attack_button_.setRadius(30.f);
   attack_button_.bindClick([&](Event) {
     if (focused_object_type_ == ObjectType::OwnSoldier) {
-      sendMessage(Message::Attack);
+      // sendMessage(Message::Attack);
     }
   });
 
