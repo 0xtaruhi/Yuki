@@ -266,7 +266,7 @@ void MainScene::initMap() {
   auto setTile = [&](int x, int y, TileCategory category, int index) {
     map_.setTile(x, y, TileInfo(category, index));
 
-    if (category == TileCategory::Road || category == TileCategory::Tree) {
+    if (category == TileCategory::Road || category == TileCategory::Tree || category == TileCategory::River) {
       for (int i = -1; i <= 1; ++i) {
         for (int j = -1; j <= 1; ++j) {
           if (isValidCoordinate(x + i, y + j)) has_tile[x + i][y + j] = true;
@@ -293,17 +293,73 @@ void MainScene::initMap() {
     setTile(25, i, TileCategory::Road, 4);
     setTile(26, i, TileCategory::Road, 6);
   }
-
   setTile(3, 6, TileCategory::Road, 1);
   setTile(26, 6, TileCategory::Road, 3);
-  for (int i = 4; i != 26; ++i) {
+  for (int i = 4; i != 10; ++i) {
     setTile(i, 6, TileCategory::Road, 2);
   }
-  for (int i = 5; i != 25; ++i) {
+  for (int i = 5; i != 10; ++i) {
+    setTile(i, 7, TileCategory::Road, 8);
+  }
+  setTile(10, 6, TileCategory::Road, 3);
+  setTile(9, 7, TileCategory::Road, 11);
+  for (int i = 7; i != 18; ++i) {
+    setTile(9, i+1, TileCategory::Road,  4);
+    setTile(10, i, TileCategory::Road, 6); 
+  }
+  setTile(10, 18, TileCategory::Road, 12);
+  setTile(9, 19, TileCategory::Road, 7);
+  for (int i = 10; i != 17; ++i) {
+    setTile(i, 19, TileCategory::Road, 8);
+  } 
+  for (int i = 11; i != 16; ++i) {
+    setTile(i, 18, TileCategory::Road, 2);
+  }
+  setTile(16, 18, TileCategory::Road, 13);
+  setTile(17, 19, TileCategory::Road, 9);
+  for (int i = 11; i != 18; ++i) {
+    setTile(16, i, TileCategory::Road, 4);
+    setTile(17, i+1, TileCategory::Road, 6);
+  }
+  setTile(16, 10, TileCategory::Road, 1);
+  setTile(17, 11, TileCategory::Road, 10);
+  for (int i = 17; i != 20; ++i) {
+    setTile(i, 10, TileCategory::Road, 2);
+    setTile(i+1, 11, TileCategory::Road, 8);
+  }
+  setTile(20,10, TileCategory::Road, 13);
+  setTile(21, 11, TileCategory::Road, 9);
+  for (int i = 7; i != 10; ++i) {
+    setTile(20, i, TileCategory::Road, 4);
+    setTile(21, i+1, TileCategory::Road, 6);
+  }
+  setTile(20, 6, TileCategory::Road, 1);
+  setTile(21, 7, TileCategory::Road, 10);
+  for (int i = 21; i != 26; ++i) {
+    setTile(i, 6, TileCategory::Road, 2);
+  }
+  for (int i = 22; i != 25; ++i) {
     setTile(i, 7, TileCategory::Road, 8);
   }
   setTile(4, 7, TileCategory::Road, 10);
   setTile(25, 7, TileCategory::Road, 11);
+
+  // river
+  for (int i = 0; i != 10; ++i) {
+    setTile(i, 2, TileCategory::River, 1);
+  }
+  setTile(11, 2, TileCategory::River, 4);
+  for (int i = 4; i != 7; ++i) {
+    setTile(11, i, TileCategory::River, 5);
+  }
+  setTile(11, 8, TileCategory::River, 3);
+  for (int i = 13; i != 17; ++i) {
+    setTile(i, 8, TileCategory::River, 1);
+  }
+  setTile(18, 8, TileCategory::River, 2);
+  for (int i = 7; i != -1 ; --i) {
+    setTile(18, i, TileCategory::River, 5);
+  }
 
   // trees
   srand(0x35d5d);
