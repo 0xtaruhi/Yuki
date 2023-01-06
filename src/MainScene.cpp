@@ -24,6 +24,7 @@ std::unique_ptr<Soldier> MainScene::generateSoldier(const std::string& name,
     soldier->setElementumType(own_current_elementum_type_);
   } else {
     birth_coordinate = kEnemyBaseCoordinate;
+    soldier->setElementumType(enemy_current_elementum_type_);
   }
   soldier->setPosition(coordinateToPixel(birth_coordinate));
 
@@ -661,6 +662,10 @@ void MainScene::setOwnCurrentElementumType(ElementumType type) {
   }
 }
 
+void MainScene::setEnemyCurrentElementumType(ElementumType type) {
+  enemy_current_elementum_type_ = type;
+}
+
 void MainScene::initButton() {
   attack_button_.setRadius(30.f);
   attack_button_.setPosition({230, 560});
@@ -741,6 +746,20 @@ void MainScene::implMsgGenerateEnemySoldier() {
   if (!(enemy_base_->canGenerateSoldier() && enemy_money_ >= 50.f)) {
     return;
   }
+  auto randElementumType = [](int rand) {
+    switch (rand % 3) {
+      case 0:
+        return ElementumType::Pyro;
+      case 1:
+        return ElementumType::Hydro;
+      case 2:
+        return ElementumType::Cyro;
+      default:
+        return ElementumType::Pyro;
+    }
+  };
+
+  setEnemyCurrentElementumType(randElementumType(rand()));
   enemy_base_->resetGenerateSoldierClock();
   decreaseEnemyMoney(50);
 

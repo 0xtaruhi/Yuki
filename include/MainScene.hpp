@@ -100,8 +100,10 @@ class MainScene : public YukiScene {
   // Elementum Panel
   std::array<ElementumPanel, 3> elementum_panels_;
   ElementumType own_current_elementum_type_;
+  ElementumType enemy_current_elementum_type_;
   void initElementumPanel();
   void setOwnCurrentElementumType(ElementumType type);
+  void setEnemyCurrentElementumType(ElementumType type);
 
   // Attack Button
   void initButton();
