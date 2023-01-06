@@ -35,6 +35,7 @@ namespace YukiColor {
   const static sf::Color Transparent_25(255, 255, 255, 192);
   const static sf::Color Transparent_75(255, 255, 255, 64);
   const static sf::Color Normal(255, 255, 255, 255);
+  const static sf::Color Gray(128, 128, 128, 255);
 }
 
 inline sf::Vector2f getVectorSpeed(const Direction direction,

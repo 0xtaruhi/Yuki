@@ -4,11 +4,9 @@
 #include <SFML/Graphics.hpp>
 #include <functional>
 
-#define TOUCHABLE_OBJECT(OBJECT_NAME)                                \
- private:                                                            \
-  virtual bool inRange(const sf::Vector2f& position) const override; \
-                                                                     \
- public:
+#define TOUCHABLE_OBJECT(OBJECT_NAME) \
+ public:                              \
+  virtual bool inRange(const sf::Vector2f& position) const override;
 
 #define FOCUSABLE_OBJECT(OBJECT_NAME) TOUCHABLE_OBJECT(OBJECT_NAME)
 
@@ -71,6 +69,21 @@ class Focusable : public Touchable {
 
   Callback on_focusCallback_ = [](sf::Event) {};
   Callback on_unfocusCallback_ = [](sf::Event) {};
+};
+
+template <class Decorated>
+class TouchableObject : public Decorated, public Touchable {
+ public:
+  TouchableObject() = default;
+  virtual ~TouchableObject() {}
+
+  virtual bool inRange(const sf::Vector2f& position) const override {
+    return Decorated::getGlobalBounds().contains(position);
+  }
+
+  virtual void updateStatus(sf::Event event) override {
+    Touchable::updateStatus(event);
+  }
 };
 
 }  // namespace yuki

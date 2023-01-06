@@ -17,10 +17,16 @@ std::unique_ptr<Soldier> MainScene::generateSoldier(const std::string& name,
   auto soldier = getSoldier(name, camp);
   registerTouchableObject(soldier.get());
 
-  auto birth_coordinate = camp == Camp::Own ? kOwnSoldierBirthCoordinate
-                                            : kEnemySoldierBirthCoordinate;
+  Vector2i birth_coordinate;
 
+  if (camp == Camp::Own) {
+    birth_coordinate = kOwnSoldierBirthCoordinate;
+    soldier->setElementumType(own_current_elementum_type_);
+  } else {
+    birth_coordinate = kEnemyBaseCoordinate;
+  }
   soldier->setPosition(coordinateToPixel(birth_coordinate));
+
   return soldier;
 }
 
@@ -34,22 +40,6 @@ int MainScene::show() { return YukiScene::show(); }
 
 void MainScene::processEvent(sf::Event event) {
   YukiScene::processEvent(event);
-  // if (event.type == sf::Event::KeyPressed) {
-  //   if (focused_object_type_ == ObjectType::OwnSoldier) {
-  //     auto soldier = std::dynamic_pointer_cast<Soldier>(focused_object_);
-  //     if (event.key.code == sf::Keyboard::W) {
-  //       soldier->setDirection(Direction::Up);
-  //     } else if (event.key.code == sf::Keyboard::S) {
-  //       soldier->setDirection(Direction::Down);
-  //     } else if (event.key.code == sf::Keyboard::A) {
-  //       soldier->setDirection(Direction::Left);
-  //     } else if (event.key.code == sf::Keyboard::D) {
-  //       soldier->setDirection(Direction::Right);
-  //     } else if (event.key.code == sf::Keyboard::Space) {
-  //       soldier->setMoving(!soldier->isMoving());
-  //     }
-  // }
-  // }
 
 #ifdef YUKI_DEBUG
   if (event.type == sf::Event::MouseButtonPressed) {
@@ -75,11 +65,20 @@ void MainScene::draw() const {
   for (auto& enemy : enemies_) {
     window_.draw(*enemy);
   }
+
+  for (auto& granule_attack : granule_attacks_) {
+    window_.draw(granule_attack.second);
+  }
+
   window_.draw(*own_base_);
   window_.draw(*enemy_base_);
 
   window_.draw(*info_bar_);
   window_.draw(*skill_bar_);
+
+  for (int i = 0; i != 3; ++i) {
+    window_.draw(elementum_panels_[i]);
+  }
 
 #ifdef YUKI_DEBUG
   window_.draw(debug_text_);
@@ -95,6 +94,10 @@ void MainScene::updateInfo() {
   }
   for (auto& enemy : enemies_) {
     enemy->update();
+  }
+
+  for (auto& granule_attack : granule_attacks_) {
+    granule_attack.second.update();
   }
 
   while (!message_queue_.empty()) {
@@ -217,6 +220,40 @@ void MainScene::sodierAdjustDirection() {
   });
 }
 
+void MainScene::updateAttacks() {
+  auto isValidPosition = [=](const sf::Vector2f& position) {
+    return position.x >= 0 && position.x < window_.getSize().x &&
+           position.y >= 0 && position.y < window_.getSize().y;
+  };
+
+  auto granuleHitEnemy =
+      [=](const GranuleAttackWithSenderInfo& granule_attack) {
+        bool hit = false;
+        const auto& granule_attack_pos = granule_attack.second.getPosition();
+        for (auto& enemy : enemies_) {
+          if (enemy->inRange(granule_attack_pos)) {
+            hit = true;
+            break;
+          }
+          break;
+        }
+        return hit;
+      };
+
+  for (auto& granule_attack : granule_attacks_) {
+    auto& granule_attack_ptr = granule_attack.second;
+    granule_attack_ptr.update();
+  }
+  granule_attacks_.erase(
+      std::remove_if(granule_attacks_.begin(), granule_attacks_.end(),
+                     [=](auto& granule_attack) {
+                       return !isValidPosition(
+                                  granule_attack.second.getPosition()) ||
+                              granuleHitEnemy(granule_attack);
+                     }),
+      granule_attacks_.end());
+}
+
 void MainScene::generateSoldier() {
   auto new_soldier = generateSoldier("NormalSoldier", Camp::Own);
 
@@ -231,7 +268,20 @@ void MainScene::generateSoldier() {
       new_soldier_ptr->setColor({255, 255, 255, 255});
     }
   });
-  new_soldier->bindClick([=](sf::Event) {});
+  new_soldier->bindClick([=](sf::Event) {
+    // dynamic_cast<NormalSoldier*>(new_soldier_ptr)
+    //     ->addGranuleAttack(new_soldier_ptr->getPosition(),
+    //       AttackInfo(ElementumType::Hydro, 2.0, 10.0)
+    //     );
+    registerGranuleAttack(
+        new_soldier_ptr,
+        GranuleAttack({new_soldier_ptr->getPosition().x +
+                           new_soldier_ptr->getSize().x / 2,
+                       new_soldier_ptr->getPosition().y +
+                           new_soldier_ptr->getSize().y / 2},
+                      5.0f, new_soldier_ptr->getDirection(),
+                      AttackInfo(new_soldier_ptr->getElementumType(), 2.0, 10.0)));
+  });
   new_soldier->bindFocus([=](sf::Event) {
     new_soldier_ptr->setColor({255, 0, 200, 255});
     focused_object_ = new_soldier_ptr;
@@ -247,6 +297,8 @@ void MainScene::initUi() {
   initMap();
   initBuildings();
   initInfoHint();
+  initElementumPanel();
+  initButton();
 #ifdef YUKI_DEBUG
   debug_text_.setCharacterSize(20);
   debug_text_.setFillColor(sf::Color::Black);
@@ -268,7 +320,8 @@ void MainScene::initMap() {
   auto setTile = [&](int x, int y, TileCategory category, int index) {
     map_.setTile(x, y, TileInfo(category, index));
 
-    if (category == TileCategory::Road || category == TileCategory::Tree || category == TileCategory::River) {
+    if (category == TileCategory::Road || category == TileCategory::Tree ||
+        category == TileCategory::River) {
       for (int i = -1; i <= 1; ++i) {
         for (int j = -1; j <= 1; ++j) {
           if (isValidCoordinate(x + i, y + j)) has_tile[x + i][y + j] = true;
@@ -306,14 +359,14 @@ void MainScene::initMap() {
   setTile(10, 6, TileCategory::Road, 3);
   setTile(9, 7, TileCategory::Road, 11);
   for (int i = 7; i != 18; ++i) {
-    setTile(9, i+1, TileCategory::Road,  4);
-    setTile(10, i, TileCategory::Road, 6); 
+    setTile(9, i + 1, TileCategory::Road, 4);
+    setTile(10, i, TileCategory::Road, 6);
   }
   setTile(10, 18, TileCategory::Road, 12);
   setTile(9, 19, TileCategory::Road, 7);
   for (int i = 10; i != 17; ++i) {
     setTile(i, 19, TileCategory::Road, 8);
-  } 
+  }
   for (int i = 11; i != 16; ++i) {
     setTile(i, 18, TileCategory::Road, 2);
   }
@@ -321,19 +374,19 @@ void MainScene::initMap() {
   setTile(17, 19, TileCategory::Road, 9);
   for (int i = 11; i != 18; ++i) {
     setTile(16, i, TileCategory::Road, 4);
-    setTile(17, i+1, TileCategory::Road, 6);
+    setTile(17, i + 1, TileCategory::Road, 6);
   }
   setTile(16, 10, TileCategory::Road, 1);
   setTile(17, 11, TileCategory::Road, 10);
   for (int i = 17; i != 20; ++i) {
     setTile(i, 10, TileCategory::Road, 2);
-    setTile(i+1, 11, TileCategory::Road, 8);
+    setTile(i + 1, 11, TileCategory::Road, 8);
   }
-  setTile(20,10, TileCategory::Road, 13);
+  setTile(20, 10, TileCategory::Road, 13);
   setTile(21, 11, TileCategory::Road, 9);
   for (int i = 7; i != 10; ++i) {
     setTile(20, i, TileCategory::Road, 4);
-    setTile(21, i+1, TileCategory::Road, 6);
+    setTile(21, i + 1, TileCategory::Road, 6);
   }
   setTile(20, 6, TileCategory::Road, 1);
   setTile(21, 7, TileCategory::Road, 10);
@@ -359,7 +412,7 @@ void MainScene::initMap() {
     setTile(i, 8, TileCategory::River, 1);
   }
   setTile(18, 8, TileCategory::River, 2);
-  for (int i = 7; i != -1 ; --i) {
+  for (int i = 7; i != -1; --i) {
     setTile(18, i, TileCategory::River, 5);
   }
 
@@ -384,8 +437,8 @@ void MainScene::initMap() {
 }
 
 void MainScene::initBuildings() {
-  own_base_ = std::make_unique<MilitaryBase>();
-  enemy_base_ = std::make_unique<MilitaryBase>();
+  own_base_ = std::make_unique<MilitaryBase>(Camp::Own);
+  enemy_base_ = std::make_unique<MilitaryBase>(Camp::Enemy);
 
   own_base_->setPosition(coordinateToPixel({2, 14}));
   enemy_base_->setPosition(coordinateToPixel({24, 14}));
@@ -438,6 +491,26 @@ void MainScene::initInfoHint() {
   registerTouchableObject(skill_bar_.get());
 }
 
+void MainScene::initElementumPanel() {
+  for (int i = 0; i != 3; ++i) {
+    auto& panel = elementum_panels_[i];
+
+    panel.setRadius(20.f);
+    panel.setPosition(Vector2f(window_.getSize().x - 50.f * (i + 1), 25.f));
+
+    panel.bindClick([&](sf::Event) {
+      setOwnCurrentElementumType(panel.getElementumType());
+    });
+
+    registerTouchableObject(&panel);
+  }
+  elementum_panels_[0].setElementumType(ElementumType::Pyro);
+  elementum_panels_[1].setElementumType(ElementumType::Hydro);
+  elementum_panels_[2].setElementumType(ElementumType::Cyro);
+
+  setOwnCurrentElementumType(ElementumType::Cyro);
+}
+
 void MainScene::setMoney(int money) {
   money_ = money;
   info_bar_->setMoney(money);
@@ -458,4 +531,25 @@ sf::Vector2i MainScene::pixelToCoordinate(const sf::Vector2f& pixel_position) {
   auto tile_size = map_.getTileSize();
   return {static_cast<int>(pixel_position.x / tile_size.x),
           static_cast<int>(pixel_position.y / tile_size.y)};
+}
+
+void MainScene::setOwnCurrentElementumType(ElementumType type) {
+  own_current_elementum_type_ = type;
+  for (auto& panel : elementum_panels_) {
+    if (panel.getElementumType() == type) {
+      panel.activate();
+    } else {
+      panel.deactivate();
+    }
+  }
+}
+
+void MainScene::initButton() {
+  attack_button_.setRadius(30.f);
+  attack_button_.bindClick([&](Event) {
+    if (focused_object_type_ == ObjectType::OwnSoldier) {
+      // sendMessage(Message::Attack);
+    }
+  });
+
 }

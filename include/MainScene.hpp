@@ -2,6 +2,8 @@
 #define MAIN_SCENE_HPP
 
 #include <queue>
+#include <vector>
+#include <array>
 
 #include "Config.hpp"
 #include "InfoBar.hpp"
@@ -10,6 +12,7 @@
 #include "Skill.hpp"
 #include "Soldier.hpp"
 #include "YukiScene.hpp"
+#include "ElementumPanel.hpp"
 
 namespace yuki {
 
@@ -43,6 +46,8 @@ class MainScene : public YukiScene {
   // const static sf::Vector2i kOwnBaseCoordinate;
   const static sf::Vector2i kEnemyBaseCoordinate;
 
+  using GranuleAttackWithSenderInfo = std::pair<Soldier*, GranuleAttack>;
+
   Map map_;
   std::unique_ptr<MilitaryBase> own_base_;
   std::unique_ptr<MilitaryBase> enemy_base_;
@@ -70,9 +75,25 @@ class MainScene : public YukiScene {
 
   void eraseDeadSoldier();
   void sodierAdjustDirection();
+  void updateAttacks();
 
   sf::Vector2f coordinateToPixel(const sf::Vector2i& coordinate);
   sf::Vector2i pixelToCoordinate(const sf::Vector2f& pixel_position);
+
+  std::vector<GranuleAttackWithSenderInfo> granule_attacks_;
+  void registerGranuleAttack(Soldier* soldier, const GranuleAttack& attack) {
+    granule_attacks_.push_back(std::make_pair(soldier, attack));
+  }
+
+  // Elementum Panel
+  std::array<ElementumPanel, 3> elementum_panels_;
+  ElementumType own_current_elementum_type_;
+  void initElementumPanel();
+  void setOwnCurrentElementumType(ElementumType type);
+
+  // Attack Button
+  void initButton();
+  TouchableObject<sf::CircleShape> attack_button_;
 
   std::queue<Message> message_queue_;
 

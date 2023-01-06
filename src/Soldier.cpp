@@ -111,7 +111,7 @@ void NormalSoldier::update() {
 
 std::unique_ptr<NormalSoldier> yuki::getNormalSoldier(Camp camp) {
   auto soldier = std::make_unique<NormalSoldier>(camp);
-
+  
   soldier->setSpeed(1.f);
   soldier->setDirection(Direction::Up);
 

@@ -68,7 +68,7 @@ class StatusBar : public sf::Drawable {
   const auto getBackgroundColor() const { return background_.getFillColor(); }
   const auto getFilledColor() const { return filled_.getFillColor(); }
   constexpr auto getMaxValue() const { return max_value_; }
-  constexpr auto getCurrentValue() const { return current_value_; }
+  constexpr auto getValue() const { return current_value_; }
   const auto getPosition() const { return position_; }
 
   void increase(const float value);

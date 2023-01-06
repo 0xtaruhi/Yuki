@@ -32,18 +32,24 @@ class BasicAttack {
   }
   BasicAttack(const AttackInfo& info) : info_(info) {}
 
+  const auto& getAttackInfo() const { return info_; }
+
   virtual ~BasicAttack() {}
 
- private:
+ protected:
   AttackInfo info_;
 };
 
 class GranuleAttack : public BasicAttack, public sf::Drawable {
  public:
-  GranuleAttack() = default;
-  GranuleAttack(const sf::Vector2f& position, const AttackInfo& attck_info)
+  GranuleAttack() { updateGranule(); }
+  GranuleAttack(const sf::Vector2f& position, float speed, Direction direction,
+                const AttackInfo& attck_info)
       : BasicAttack(attck_info) {
+    speed_ = speed;
+    direction_ = direction;
     granule_.setPosition(position);
+    updateGranule();
   }
 
   virtual ~GranuleAttack() {}
@@ -53,37 +59,14 @@ class GranuleAttack : public BasicAttack, public sf::Drawable {
 
   virtual void update();
 
+  auto getPosition() const { return granule_.getPosition(); }
+
  protected:
-  sf::Sprite granule_;
-  float speed_;
-  Direction direction_;
-};
-
-class GranuleAttackable {
- public:
-  GranuleAttackable(float speed = 0.f, Direction direction = Direction::Up)
-      : speed_(speed), direction_(direction) {}
-
-  virtual ~GranuleAttackable() {}
-
-  void addGranuleAttack(const sf::Vector2f& position,
-                        const AttackInfo& attack_info) {
-    granule_attacks_.push(GranuleAttack(position, attack_info));
-  }
-  void addGranuleAttack(const sf::Vector2f& position) {
-    granule_attacks_.push(GranuleAttack(position, default_attack_info_));
-  }
-
-  void setDefaultAttackInfo(const AttackInfo& attack_info) {
-    default_attack_info_ = attack_info;
-  }
-
- private:
-  std::queue<GranuleAttack> granule_attacks_;
+  sf::CircleShape granule_;
   float speed_;
   Direction direction_;
 
-  AttackInfo default_attack_info_;
+  void updateGranule();
 };
 
 }  // namespace yuki
