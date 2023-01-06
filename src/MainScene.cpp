@@ -107,10 +107,12 @@ void MainScene::updateInfo() {
     message_queue_.pop();
     if (message == Message::GenerateOwnSoldier) {
       implMsgGenerateOwnSoldier();
-    }
-
-    if (message == Message::GenerateEnemySoldier) {
+    } else if (message == Message::GenerateEnemySoldier) {
       implMsgGenerateEnemySoldier();
+    } else if (message == Message::OwnBaseLevelUp) {
+      if (own_base_->getLevel() < 3) {
+        own_base_->levelUp();
+      }
     }
   }
   updateAttacks();
@@ -146,6 +148,7 @@ void MainScene::eraseDeadSoldier() {
       auto ptr = iter->get();
       unregisterTouchableObject(ptr);
       iter = soldiers_.erase(iter);
+      increaseEnemyMoney(75);
     } else {
       ++iter;
     }
@@ -154,6 +157,7 @@ void MainScene::eraseDeadSoldier() {
   for (auto iter = enemies_.begin(); iter != enemies_.end();) {
     if (isDead(*iter)) {
       iter = enemies_.erase(iter);
+      increaseOwnMoney(75);
     } else {
       ++iter;
     }
@@ -307,7 +311,7 @@ void MainScene::updateAttacks() {
            position.y >= 0 && position.y < window_.getSize().y;
   };
 
-  auto granuleHit =
+  auto granuleHitEnemy =
       [=](const GranuleAttackWithSenderInfo& granule_attack) -> Soldier* {
     const auto& granule_attack_pos = granule_attack.second.getPosition();
     const auto& attack_sender_camp = granule_attack.first->getCamp();
@@ -329,6 +333,21 @@ void MainScene::updateAttacks() {
     return nullptr;
   };
 
+  auto granuleHitBase = [=](const GranuleAttackWithSenderInfo& granule_attack) -> MilitaryBase* {
+    const auto& granule_attack_pos = granule_attack.second.getPosition();
+    const auto& attack_sender_camp = granule_attack.first->getCamp();
+    if (attack_sender_camp == Camp::Own) {
+      if (enemy_base_->inRange(granule_attack_pos)) {
+        return enemy_base_.get();
+      }
+    } else if (attack_sender_camp == Camp::Enemy) {
+      if (own_base_->inRange(granule_attack_pos)) {
+        return own_base_.get();
+      }
+    }
+    return nullptr;
+  };
+
   for (auto& granule_attack : granule_attacks_) {
     auto& granule_attack_ptr = granule_attack.second;
     granule_attack_ptr.update();
@@ -341,13 +360,22 @@ void MainScene::updateAttacks() {
                      }),
       granule_attacks_.end());
 
-  std::for_each(granule_attacks_.begin(), granule_attacks_.end(),
-                [=](auto& granule_attack) {
-                  auto hit_object = granuleHit(granule_attack);
-                  if (hit_object != nullptr) {
-                    hit_object->getAttacked(granule_attack.second);
-                  }
-                });
+  for (auto iter = granule_attacks_.begin(); iter != granule_attacks_.end();) {
+    auto hit_enemy = granuleHitEnemy(*iter);
+    if (hit_enemy != nullptr) {
+      hit_enemy->getAttacked(iter->second);
+      iter = granule_attacks_.erase(iter);
+    } else {
+      auto hit_base = granuleHitBase(*iter);
+      if (hit_base != nullptr) {
+        hit_base->getAttacked(iter->second);
+        iter = granule_attacks_.erase(iter);
+      } else {
+        iter++;
+      }
+    }
+  }
+
 }
 
 void MainScene::enemyBaseMakeDecision() {
@@ -534,7 +562,10 @@ void MainScene::initBuildings() {
     auto bubble_index = own_base_->getFloatingBubbleIndexByPosition(
         Vector2f(mouse_pos.x, mouse_pos.y));
     if (bubble_index == -1) return;
-    if (bubble_index == 2) {
+    if (bubble_index == 0) {
+      sendMessage(Message::OwnBaseLevelUp);
+    }
+    if (bubble_index == 1) {
       sendMessage(Message::GenerateOwnSoldier);
     }
   });
@@ -632,11 +663,6 @@ void MainScene::setOwnCurrentElementumType(ElementumType type) {
 
 void MainScene::initButton() {
   attack_button_.setRadius(30.f);
-  attack_button_.bindClick([&](Event) {
-    if (focused_object_type_ == ObjectType::OwnSoldier) {
-      // sendMessage(Message::Attack);
-    }
-  });
   attack_button_.setPosition({230, 560});
   attack_button_.setOutlineColor(sf::Color::White);
   // attack_button_.setOutlineThickness(2.f);
@@ -668,7 +694,10 @@ void MainScene::initButton() {
 }
 
 void MainScene::implMsgGenerateOwnSoldier() {
-  if (!own_base_->canGenerateSoldier()) return;
+  if (!(own_base_->canGenerateSoldier() && own_money_ >= 50)) return;
+
+  own_base_->resetGenerateSoldierClock();
+  decreaseOwnMoney(50);
 
   auto new_soldier = generateSoldier("NormalSoldier", Camp::Own);
   new_soldier->setElementumType(own_current_elementum_type_);
@@ -693,21 +722,28 @@ void MainScene::implMsgGenerateOwnSoldier() {
                            AttackInfo(ptr->getElementumType(), 2.0, 2.0)));
   });
   new_soldier->bindFocus([=](sf::Event) {
-    ptr->setColor({255, 0, 200, 255});
+    auto color = ptr->getColor();
+    color.a = 192;
+    ptr->setColor(color);
     focused_object_ = ptr;
     focused_object_type_ = ObjectType::OwnSoldier;
   });
   new_soldier->bindUnfocus([=](sf::Event) {
-    ptr->setColor({255, 255, 255, 255});
+    auto color = ptr->getColor();
+    color.a = 255;
+    ptr->setColor(color);
   });
 
   soldiers_.push_back(std::move(new_soldier));
 }
 
 void MainScene::implMsgGenerateEnemySoldier() {
-  if (!enemy_base_->canGenerateSoldier()) {
+  if (!(enemy_base_->canGenerateSoldier() && enemy_money_ >= 50.f)) {
     return;
   }
+  enemy_base_->resetGenerateSoldierClock();
+  decreaseEnemyMoney(50);
+
   auto new_soldier = generateSoldier("NormalSoldier", Camp::Enemy);
   new_soldier->setElementumType(own_current_elementum_type_);
   new_soldier->setPosition(coordinateToPixel(kEnemySoldierBirthCoordinate));

@@ -68,6 +68,7 @@ class Soldier : public sf::Drawable, public Focusable {
   void decreaseHealth(const float health) { health_bar_.decrease(health); }
 
   void setColor(const sf::Color& color) { sprite_.setColor(color); }
+  auto getColor() const { return sprite_.getColor(); }
 
   void setPlaceOffset(const sf::Vector2f& offset) { place_offset_ = offset; }
   virtual const sf::Vector2f& getPlaceOffset() const { return place_offset_; }
@@ -99,6 +100,10 @@ class Soldier : public sf::Drawable, public Focusable {
   void getAttacked(const BasicAttack& attack);
 
   constexpr auto isFreezed() const { return is_freeze_; }
+
+  // constexpr auto getCost() const { return cost_; }
+
+  virtual std::unique_ptr<BasicAttack> getDefaultAttack() = 0;
 
  protected:
   // sf::Sprite sprite_;
@@ -135,6 +140,9 @@ class NormalSoldier : public Soldier {
                     sf::RenderStates states) const override;
 
   virtual void update() override;
+
+  std::unique_ptr<BasicAttack> getDefaultAttack() override { return getDefaultGranuleAttack(); }
+  std::unique_ptr<GranuleAttack> getDefaultGranuleAttack();
 
  private:
   sf::Texture all_textures_;

@@ -7,7 +7,7 @@ using namespace sf;
 
 MilitaryBase::MilitaryBase(Camp camp)
     : camp_(camp),
-      floating_bubble_(FloatingBubble(Vector2f(this->getPosition()), 110, 4, 22,
+      floating_bubble_(FloatingBubble(Vector2f(this->getPosition()), 90, 2, 22,
                                       Direction::Up)) {
   initTexture();
   bindHover([this](sf::Event) {
@@ -23,12 +23,6 @@ MilitaryBase::MilitaryBase(Camp camp)
                           getPosition().y + getGlobalBounds().height / 2});
   floating_bubble_.setPosition(fb_pos);
 
-  // health_bar_ = getHealthBar(
-  //     {
-  //         this->getGlobalBounds().width,
-  //         5.f,
-  //     },
-  //     camp);
   health_bar_ =
       StatusBar({this->getGlobalBounds().width, 3.f},
                 {getPosition().x, getPosition().y + health_bar_offset_y});
@@ -49,8 +43,8 @@ void MilitaryBase::updateTexture() {
     return "assets/map/" +
            getTileSrcName(TileInfo(TileCategory::Building, level)) + ".png";
   };
-  if (level >= 1 && level <= 3) {
-    texture_.loadFromFile(getTextureLoc(level));
+  if (level_ >= 1 && level_ <= 3) {
+    texture_.loadFromFile(getTextureLoc(level_));
   } else {
     texture_.loadFromFile(getTextureLoc(1));
   }
@@ -76,7 +70,6 @@ void MilitaryBase::draw(sf::RenderTarget& target,
 bool MilitaryBase::canGenerateSoldier() {
   auto elapsed = generateSoldierClock_.getElapsedTime();
   if (elapsed >= seconds(1)) {
-    generateSoldierClock_.restart();
     return true;
   }
   return false;

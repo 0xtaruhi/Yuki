@@ -18,7 +18,6 @@ bool Soldier::inRange(const Vector2f& target) const {
 }
 
 void Soldier::update() {
-  
   if (is_moving_) {
     sprite_.move(getVectorSpeed(direction_, speed_));
   }
@@ -79,7 +78,7 @@ void NormalSoldier::update() {
       direct_int = 0;
       break;
   }
-  if (clock_.getElapsedTime().asMilliseconds() > 100) {
+  if (clock_.getElapsedTime().asSeconds() > 1.f) {
     clock_.restart();
     if (is_moving_ == false) {
       sprite_.setTextureRect(sf::IntRect(42, direct_int * 42, 42, 42));
@@ -94,19 +93,27 @@ void NormalSoldier::update() {
     current_frame_ = 0;
   }
 
+  auto color = sprite_.getColor();
   switch (elementum_.type) {
     case ElementumType::Pyro:
-      sprite_.setColor(sf::Color::Red);
+      color.g = 128;
+      color.b = 128;
+      color.r = 255;
       break;
     case ElementumType::Hydro:
-      sprite_.setColor(sf::Color::Blue);
+      color.r = 128;
+      color.b = 255;
+      color.g = 128;
       break;
     case ElementumType::Cyro:
-      sprite_.setColor(sf::Color::White);
+      color.r = 128;
+      color.g = 255;
+      color.b = 128;
       break;
     default:
       break;
   }
+  sprite_.setColor(color);
 
   if (is_freeze_) {
     if (freeze_clock_.getElapsedTime().asSeconds() > 3.f) {
@@ -125,7 +132,7 @@ std::unique_ptr<NormalSoldier> yuki::getNormalSoldier(Camp camp) {
   soldier->setMoving(true);
   soldier->setMaxHealth(100.f);
   soldier->setHealth(100.f);
-  
+
   return soldier;
 }
 
@@ -137,7 +144,8 @@ std::unique_ptr<Soldier> yuki::getSoldier(const std::string& name, Camp camp) {
 }
 
 void Soldier::getAttacked(const BasicAttack& attack) {
-  auto elementum_reaction = getElementumReaction(attack.getElementum(), adhesion_elementum_);
+  auto elementum_reaction =
+      getElementumReaction(attack.getElementum(), adhesion_elementum_);
   const auto& reaction_type = elementum_reaction.type;
   const auto& result_elementum = elementum_reaction.elementum;
 
@@ -163,4 +171,11 @@ void Soldier::getAttacked(const BasicAttack& attack) {
   }
 
   decreaseHealth(result_damage);
+}
+
+std::unique_ptr<GranuleAttack> NormalSoldier::getDefaultGranuleAttack() {
+  return std::make_unique<GranuleAttack>(
+      Vector2f{getPosition().x + getSize().x / 2,
+               getPosition().y + getSize().y / 2},
+      5.0f, getDirection(), AttackInfo(getElementumType(), 2.0, 2.0));
 }

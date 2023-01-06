@@ -1,6 +1,7 @@
 #ifndef MILITARY_BASE_HPP
 #define MILITARY_BASE_HPP
 
+#include "Attack.hpp"
 #include "FloatingBubble.hpp"
 #include "StatusBar.hpp"
 #include "TouchableSprite.hpp"
@@ -17,13 +18,15 @@ class MilitaryBase : public TouchableSprite {
   virtual ~MilitaryBase() {}
 
   void levelUp() {
-    level++;
+    level_++;
     updateTexture();
   }
   void levelDown() {
-    level--;
+    level_--;
     updateTexture();
   }
+
+  auto getLevel() const { return level_; }
 
   void setCurrentHealth(int health) { health_bar_.setValue(health); }
   void setMaxHealth(int health) { health_bar_.setMaxValue(health); }
@@ -59,10 +62,15 @@ class MilitaryBase : public TouchableSprite {
   const auto& getFloatingBubble() const { return floating_bubble_; }
 
   bool canGenerateSoldier();
+  void resetGenerateSoldierClock() { generateSoldierClock_.restart(); }
+
+  void getAttacked(const BasicAttack& attack) {
+    health_bar_.setValue(health_bar_.getValue() - attack.getDamage());
+  }
 
  private:
   Camp camp_;
-  int level = 1;
+  int level_ = 1;
   sf::Texture texture_;
   FloatingBubble floating_bubble_;
   bool floating_bubble_visible_ = false;

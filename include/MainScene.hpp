@@ -1,18 +1,19 @@
 #ifndef MAIN_SCENE_HPP
 #define MAIN_SCENE_HPP
 
+#include <array>
 #include <queue>
 #include <vector>
-#include <array>
 
 #include "Config.hpp"
+#include "ElementumPanel.hpp"
 #include "InfoBar.hpp"
 #include "Map.hpp"
 #include "MilitaryBase.hpp"
 #include "Skill.hpp"
 #include "Soldier.hpp"
 #include "YukiScene.hpp"
-#include "ElementumPanel.hpp"
+
 
 namespace yuki {
 
@@ -57,6 +58,11 @@ class MainScene : public YukiScene {
 
   int own_money_;
   int enemy_money_;
+
+  void increaseOwnMoney(int money) { increaseMoney(money, Camp::Own); }
+  void decreaseOwnMoney(int money) { decreaseMoney(money, Camp::Own); }
+  void increaseEnemyMoney(int money) { increaseMoney(money, Camp::Enemy); }
+  void decreaseEnemyMoney(int money) { decreaseMoney(money, Camp::Enemy); }
 
   std::vector<std::unique_ptr<Soldier>> soldiers_;
   std::vector<std::unique_ptr<Soldier>> enemies_;
