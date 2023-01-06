@@ -137,7 +137,7 @@ class SeniorSoldier : public Soldier {
 
 private:
   sf::Texture all_textures_;
-  sf::Vector2f place_offset_ = {0,0};
+  sf::Vector2f place_offset_ = {0, 0};
 
   int current_frame_;
   int previous_frame_;
