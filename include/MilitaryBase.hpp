@@ -5,7 +5,6 @@
 #include "StatusBar.hpp"
 #include "TouchableSprite.hpp"
 
-
 namespace yuki {
 
 class MilitaryBase : public TouchableSprite {
@@ -26,18 +25,10 @@ class MilitaryBase : public TouchableSprite {
     updateTexture();
   }
 
-  void setCurrentHealth(int health) {
-    health_bar_.setValue(health);
-  }
-  void setMaxHealth(int health) {
-    health_bar_.setMaxValue(health);
-  }
-  constexpr auto getCurrentHealth() const {
-    return health_bar_.getValue();
-  }
-  constexpr auto getMaxHealth() const {
-    return health_bar_.getMaxValue();
-  }
+  void setCurrentHealth(int health) { health_bar_.setValue(health); }
+  void setMaxHealth(int health) { health_bar_.setMaxValue(health); }
+  constexpr auto getCurrentHealth() const { return health_bar_.getValue(); }
+  constexpr auto getMaxHealth() const { return health_bar_.getMaxValue(); }
 
   void setPosition(const sf::Vector2f& position) {
     TouchableSprite::setPosition(position);
@@ -67,6 +58,8 @@ class MilitaryBase : public TouchableSprite {
   auto& getFloatingBubble() { return floating_bubble_; }
   const auto& getFloatingBubble() const { return floating_bubble_; }
 
+  bool canGenerateSoldier();
+
  private:
   Camp camp_;
   int level = 1;
@@ -74,7 +67,7 @@ class MilitaryBase : public TouchableSprite {
   FloatingBubble floating_bubble_;
   bool floating_bubble_visible_ = false;
   StatusBar health_bar_;
-  // bool health_bar_visible_ = false;
+  sf::Clock generateSoldierClock_;
 
   void initTexture();
   void updateTexture();

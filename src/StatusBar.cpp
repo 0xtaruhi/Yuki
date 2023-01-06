@@ -35,7 +35,7 @@ void StatusBar::adjustIfOverflow() {
   if (current_value_ < 0) current_value_ = 0;
 }
 
-StatusBar yuki::getHealthBar(const sf::Vector2f& size, Camp camp) {
+StatusBar yuki::getHealthBar(Camp camp, const sf::Vector2f& size) {
   auto health_bar = StatusBar(size, {0.f, 0.f});
   health_bar.setBackgroudColor(sf::Color::Black);
   // set Outline

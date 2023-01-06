@@ -5,7 +5,6 @@
 
 #include "Basic.hpp"
 
-
 namespace yuki {
 
 class StatusBar : public sf::Drawable {
@@ -99,8 +98,8 @@ class StatusBar : public sf::Drawable {
   void adjustIfOverflow();
 };
 
-StatusBar getHealthBar(const sf::Vector2f& size = {30.f, 5.f},
-                       Camp camp = Camp::Own);
+StatusBar getHealthBar(Camp camp = Camp::Own,
+                       const sf::Vector2f& size = {30.f, 5.f});
 
 }  // namespace yuki
 

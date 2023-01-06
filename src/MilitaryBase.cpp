@@ -72,3 +72,12 @@ void MilitaryBase::draw(sf::RenderTarget& target,
     floating_bubble_.draw(target, states);
   }
 }
+
+bool MilitaryBase::canGenerateSoldier() {
+  auto elapsed = generateSoldierClock_.getElapsedTime();
+  if (elapsed >= seconds(1)) {
+    generateSoldierClock_.restart();
+    return true;
+  }
+  return false;
+}

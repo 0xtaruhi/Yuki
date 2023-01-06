@@ -35,6 +35,9 @@ class YukiScene {
   void registerTouchableObject(Touchable* object) {
     mouse_event_engine_.registerTouchableObject(object);
   }
+  void unregisterTouchableObject(Touchable* object) {
+    mouse_event_engine_.unregisterTouchableObject(object);
+  }
 
   sf::RenderWindow& window_;
   virtual void processEvent(sf::Event event);

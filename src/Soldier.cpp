@@ -107,11 +107,18 @@ void NormalSoldier::update() {
     default:
       break;
   }
+
+  if (is_freeze_) {
+    if (freeze_clock_.getElapsedTime().asSeconds() > 3.f) {
+      is_freeze_ = false;
+      setMoving(true);
+    }
+  }
 }
 
 std::unique_ptr<NormalSoldier> yuki::getNormalSoldier(Camp camp) {
   auto soldier = std::make_unique<NormalSoldier>(camp);
-  
+
   soldier->setSpeed(1.f);
   soldier->setDirection(Direction::Up);
 
@@ -127,4 +134,33 @@ std::unique_ptr<Soldier> yuki::getSoldier(const std::string& name, Camp camp) {
     return getNormalSoldier(camp);
   }
   return nullptr;
+}
+
+void Soldier::getAttacked(const BasicAttack& attack) {
+  auto elementum_reaction = getElementumReaction(attack.getElementum(), adhesion_elementum_);
+  const auto& reaction_type = elementum_reaction.type;
+  const auto& result_elementum = elementum_reaction.elementum;
+
+  const auto& base_damage = attack.getDamage();
+  auto result_damage = base_damage;
+
+  adhesion_elementum_ = result_elementum;
+
+  switch (reaction_type) {
+    case ElementumReactionType::Evaporation:
+      result_damage *= 1.5f;
+      break;
+    case ElementumReactionType::Melt:
+      result_damage *= 2.f;
+      break;
+    case ElementumReactionType::Freeze:
+      is_freeze_ = true;
+      setMoving(false);
+      freeze_clock_.restart();
+      break;
+    default:
+      break;
+  }
+
+  decreaseHealth(result_damage);
 }

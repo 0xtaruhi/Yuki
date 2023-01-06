@@ -34,6 +34,11 @@ class BasicAttack {
 
   const auto& getAttackInfo() const { return info_; }
 
+  const auto getElementum() const {
+    return Elementum(info_.elementum_type, info_.elementum_level);
+  }
+  const auto getDamage() const { return info_.damage; }
+
   virtual ~BasicAttack() {}
 
  protected:

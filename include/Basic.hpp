@@ -11,6 +11,14 @@ constexpr auto kWindowHeight = 640;
 
 enum class Direction { Down = 0, Left, Right, Up, Other };
 
+inline auto isOppositeDirection(const Direction direction1,
+                           const Direction direction2) {
+  return (direction1 == Direction::Down && direction2 == Direction::Up) ||
+         (direction1 == Direction::Up && direction2 == Direction::Down) ||
+         (direction1 == Direction::Left && direction2 == Direction::Right) ||
+         (direction1 == Direction::Right && direction2 == Direction::Left);
+}
+
 enum class Camp { Own, Enemy, Other };
 
 namespace GameFont {
@@ -30,13 +38,13 @@ const static auto DefaultFont = initFont("assets/font/ARLRDBD.ttf");
 }  // namespace GameFont
 
 namespace YukiColor {
-  const static sf::Color Transparent_50(255, 255, 255, 128);
-  const static sf::Color Transparent(255, 255, 255, 0);
-  const static sf::Color Transparent_25(255, 255, 255, 192);
-  const static sf::Color Transparent_75(255, 255, 255, 64);
-  const static sf::Color Normal(255, 255, 255, 255);
-  const static sf::Color Gray(128, 128, 128, 255);
-}
+const static sf::Color Transparent_50(255, 255, 255, 128);
+const static sf::Color Transparent(255, 255, 255, 0);
+const static sf::Color Transparent_25(255, 255, 255, 192);
+const static sf::Color Transparent_75(255, 255, 255, 64);
+const static sf::Color Normal(255, 255, 255, 255);
+const static sf::Color Gray(128, 128, 128, 255);
+}  // namespace YukiColor
 
 inline sf::Vector2f getVectorSpeed(const Direction direction,
                                    const float speed) {

@@ -9,13 +9,13 @@ using namespace sf;
 const sf::Vector2i MainScene::kOwnSoldierBirthCoordinate = {3, 17};
 const sf::Vector2i MainScene::kEnemySoldierBirthCoordinate = {25, 17};
 
-// const sf::Vector2i MainScene::kOwnBaseCoordinate = {3, 18};
+const sf::Vector2i MainScene::kOwnBaseCoordinate = {3, 14};
 const sf::Vector2i MainScene::kEnemyBaseCoordinate = {26, 14};
 
 std::unique_ptr<Soldier> MainScene::generateSoldier(const std::string& name,
                                                     Camp camp) {
   auto soldier = getSoldier(name, camp);
-  registerTouchableObject(soldier.get());
+  if (camp == Camp::Own) registerTouchableObject(soldier.get());
 
   Vector2i birth_coordinate;
 
@@ -79,6 +79,7 @@ void MainScene::draw() const {
   for (int i = 0; i != 3; ++i) {
     window_.draw(elementum_panels_[i]);
   }
+  window_.draw(attack_button_);
 
 #ifdef YUKI_DEBUG
   window_.draw(debug_text_);
@@ -86,6 +87,7 @@ void MainScene::draw() const {
 }
 
 void MainScene::updateInfo() {
+  enemyBaseMakeDecision();
   for (auto& soldier : soldiers_) {
     soldier->update();
     if (soldier->getHealth() > 50.f) {
@@ -103,24 +105,26 @@ void MainScene::updateInfo() {
   while (!message_queue_.empty()) {
     auto message = message_queue_.front();
     message_queue_.pop();
-    switch (message) {
-      case Message::GenerateOwnSoldier:
-        generateSoldier();
-        break;
-      default:
-        break;
+    if (message == Message::GenerateOwnSoldier) {
+      implMsgGenerateOwnSoldier();
+    }
+
+    if (message == Message::GenerateEnemySoldier) {
+      implMsgGenerateEnemySoldier();
     }
   }
+  updateAttacks();
+  soldierUpdatePosition();
   eraseDeadSoldier();
 }
 
 void MainScene::eraseDeadSoldier() {
   const auto& window_size = window_.getSize();
 
-  auto left_bound = -map_.getTileSize().x;
-  auto right_bound = window_size.x;
-  auto up_bound = -map_.getTileSize().y;
-  auto down_bound = window_size.y;
+  const auto left_bound = -map_.getTileSize().x;
+  const auto right_bound = window_size.x;
+  const auto up_bound = -map_.getTileSize().y;
+  const auto down_bound = window_size.y;
 
   auto isDead = [=](const std::unique_ptr<Soldier>& soldier) {
     if (soldier->getHealth() <= 0.f) {
@@ -136,15 +140,27 @@ void MainScene::eraseDeadSoldier() {
     return false;
   };
 
-  soldiers_.erase(std::remove_if(soldiers_.begin(), soldiers_.end(), isDead),
-                  soldiers_.end());
-  enemies_.erase(std::remove_if(enemies_.begin(), enemies_.end(), isDead),
-                 enemies_.end());
+  // erase & unregister
+  for (auto iter = soldiers_.begin(); iter != soldiers_.end();) {
+    if (isDead(*iter)) {
+      auto ptr = iter->get();
+      unregisterTouchableObject(ptr);
+      iter = soldiers_.erase(iter);
+    } else {
+      ++iter;
+    }
+  }
 
-  sodierAdjustDirection();
+  for (auto iter = enemies_.begin(); iter != enemies_.end();) {
+    if (isDead(*iter)) {
+      iter = enemies_.erase(iter);
+    } else {
+      ++iter;
+    }
+  }
 }
 
-void MainScene::sodierAdjustDirection() {
+void MainScene::soldierUpdatePosition() {
   auto valid_coordinate = [=](const sf::Vector2i& coordinate) {
     return coordinate.x >= 0 && coordinate.x < map_.getSize().x &&
            coordinate.y >= 0 && coordinate.y < map_.getSize().y;
@@ -156,9 +172,9 @@ void MainScene::sodierAdjustDirection() {
     return map_.getTile(coordinate).getTileInfo().category ==
            TileCategory::Road;
   };
-  // auto getLeftCoordinate = [=](const sf::Vector2i& coordinate) {
-  //   return sf::Vector2i(coordinate.x - 1, coordinate.y);
-  // };
+  auto getLeftCoordinate = [=](const sf::Vector2i& coordinate) {
+    return sf::Vector2i(coordinate.x - 1, coordinate.y);
+  };
   auto getRightCoordinate = [=](const sf::Vector2i& coordinate) {
     return sf::Vector2i(coordinate.x + 1, coordinate.y);
   };
@@ -169,55 +185,120 @@ void MainScene::sodierAdjustDirection() {
     return sf::Vector2i(coordinate.x, coordinate.y + 1);
   };
 
-  auto distanceToEnemyBase = [=](const sf::Vector2i& coordinate) {
-    return std::abs(coordinate.x - kEnemyBaseCoordinate.x) +
-           std::abs(coordinate.y - kEnemyBaseCoordinate.y);
+  auto distanceToEnemyBase = [=](Soldier* soldier) {
+    auto camp = soldier->getCamp();
+    auto coordinate = pixelToCoordinate(soldier->getPosition());
+    if (camp == Camp::Own) {
+      return std::abs(coordinate.x - kEnemyBaseCoordinate.x) +
+             std::abs(coordinate.y - kEnemyBaseCoordinate.y);
+    }
+    return std::abs(coordinate.x - kOwnBaseCoordinate.x) +
+           std::abs(coordinate.y - kOwnBaseCoordinate.y);
   };
 
-  std::for_each(soldiers_.begin(), soldiers_.end(), [=](auto& soldier) {
+  auto distanceBetweenSoldier = [=](const Soldier& soldier_A,
+                                    const Soldier& soldier_B) {
+    const auto& coordinate_A = pixelToCoordinate(soldier_A.getPosition());
+    const auto& coordinate_B = pixelToCoordinate(soldier_B.getPosition());
+    return std::abs(coordinate_A.x - coordinate_B.x) +
+           std::abs(coordinate_A.y - coordinate_B.y);
+  };
+
+  auto turnDirection = [=](Soldier* soldier) {
+    auto camp = soldier->getCamp();
     auto coordinate = pixelToCoordinate(soldier->getPosition());
-    // coordinate fix (for origin at left-top)
     coordinate.x++;
     coordinate.y++;
 
-    auto distance = distanceToEnemyBase(coordinate);
-    if (distance < 2.f) {
-      soldier->setMoving(false);
-      return;
-    }
-
-    auto next_coordinate(coordinate);
-    switch (soldier->getDirection()) {
-      case Direction::Up:
-        next_coordinate.y -= 1;
-        break;
-      case Direction::Down:
-        next_coordinate.y += 1;
-        break;
-      case Direction::Left:
-        next_coordinate.x -= 1;
-        break;
-      case Direction::Right:
-        next_coordinate.x += 1;
-        break;
-      default:
-        break;
-    }
-    if (!walkable(next_coordinate)) {
-      // if (walkable(getLeftCoordinate(coordinate))) {
-      //   soldier->setDirection(Direction::Left);
-      // } else if (walkable(getRightCoordinate(coordinate))) {
-      if (walkable(getRightCoordinate(coordinate))) {
+    if (camp == Camp::Own) {
+      if (walkable(getRightCoordinate(coordinate)))
         soldier->setDirection(Direction::Right);
-      } else if (walkable(getUpCoordinate(coordinate))) {
+      else if (walkable(getUpCoordinate(coordinate)))
         soldier->setDirection(Direction::Up);
-      } else if (walkable(getDownCoordinate(coordinate))) {
+      else if (walkable(getDownCoordinate(coordinate)))
         soldier->setDirection(Direction::Down);
+      else
+        soldier->setSpeed(0.f);
+    } else {
+      if (walkable(getLeftCoordinate(coordinate)))
+        soldier->setDirection(Direction::Left);
+      else if (walkable(getUpCoordinate(coordinate)))
+        soldier->setDirection(Direction::Up);
+      else if (walkable(getDownCoordinate(coordinate)))
+        soldier->setDirection(Direction::Down);
+      else
+        soldier->setSpeed(0.f);
+    }
+  };
+
+  auto updateSoldierPostionByCamp = [&](Camp camp) {
+    std::vector<std::unique_ptr<Soldier>>* soldiers_ptr;
+    std::vector<std::unique_ptr<Soldier>>* enemies_ptr;
+
+    if (camp == Camp::Own) {
+      soldiers_ptr = &soldiers_;
+      enemies_ptr = &enemies_;
+    } else {
+      soldiers_ptr = &enemies_;
+      enemies_ptr = &soldiers_;
+    }
+    auto& soldiers = *soldiers_ptr;
+    auto& enemies = *enemies_ptr;
+
+    std::for_each(soldiers.begin(), soldiers.end(), [&](auto& soldier) {
+      auto coordinate = pixelToCoordinate(soldier->getPosition());
+      coordinate.x++;
+      coordinate.y++;
+
+      if (!soldier->isFreezed()) {
+        soldier->setMoving(true);
       } else {
         soldier->setMoving(false);
       }
-    }
-  });
+
+      auto distance = distanceToEnemyBase(soldier.get());
+      if (distance < 2.f) {
+        soldier->setMoving(false);
+        return;
+      }
+
+      for (auto iter = enemies.begin(); iter != enemies.end(); iter++) {
+        auto& enemy = *iter;
+        if (isOppositeDirection(soldier->getDirection(),
+                                enemy->getDirection()) &&
+            distanceBetweenSoldier(*soldier, *enemy) < 3.f) {
+          soldier->setMoving(false);
+          return;
+        }
+      }
+
+      auto next_coordinate(coordinate);
+      switch (soldier->getDirection()) {
+        case Direction::Up:
+          next_coordinate.y -= 1;
+          break;
+        case Direction::Down:
+          next_coordinate.y += 1;
+          break;
+        case Direction::Left:
+          next_coordinate.x -= 1;
+          break;
+        case Direction::Right:
+          next_coordinate.x += 1;
+          break;
+        default:
+          break;
+      }
+
+      if (!walkable(next_coordinate)) {
+        turnDirection(soldier.get());
+        return;
+      }
+    });
+  };
+
+  updateSoldierPostionByCamp(Camp::Own);
+  updateSoldierPostionByCamp(Camp::Enemy);
 }
 
 void MainScene::updateAttacks() {
@@ -226,19 +307,27 @@ void MainScene::updateAttacks() {
            position.y >= 0 && position.y < window_.getSize().y;
   };
 
-  auto granuleHitEnemy =
-      [=](const GranuleAttackWithSenderInfo& granule_attack) {
-        bool hit = false;
-        const auto& granule_attack_pos = granule_attack.second.getPosition();
-        for (auto& enemy : enemies_) {
-          if (enemy->inRange(granule_attack_pos)) {
-            hit = true;
-            break;
-          }
+  auto granuleHit =
+      [=](const GranuleAttackWithSenderInfo& granule_attack) -> Soldier* {
+    const auto& granule_attack_pos = granule_attack.second.getPosition();
+    const auto& attack_sender_camp = granule_attack.first->getCamp();
+    if (attack_sender_camp == Camp::Own) {
+      for (auto& enemy : enemies_) {
+        if (enemy->inRange(granule_attack_pos)) {
+          return enemy.get();
           break;
         }
-        return hit;
-      };
+      }
+    } else if (attack_sender_camp == Camp::Enemy) {
+      for (auto& soldier : soldiers_) {
+        if (soldier->inRange(granule_attack_pos)) {
+          return soldier.get();
+          break;
+        }
+      }
+    }
+    return nullptr;
+  };
 
   for (auto& granule_attack : granule_attacks_) {
     auto& granule_attack_ptr = granule_attack.second;
@@ -248,49 +337,23 @@ void MainScene::updateAttacks() {
       std::remove_if(granule_attacks_.begin(), granule_attacks_.end(),
                      [=](auto& granule_attack) {
                        return !isValidPosition(
-                                  granule_attack.second.getPosition()) ||
-                              granuleHitEnemy(granule_attack);
+                           granule_attack.second.getPosition());
                      }),
       granule_attacks_.end());
+
+  std::for_each(granule_attacks_.begin(), granule_attacks_.end(),
+                [=](auto& granule_attack) {
+                  auto hit_object = granuleHit(granule_attack);
+                  if (hit_object != nullptr) {
+                    hit_object->getAttacked(granule_attack.second);
+                  }
+                });
 }
 
-void MainScene::generateSoldier() {
-  auto new_soldier = generateSoldier("NormalSoldier", Camp::Own);
-
-  auto new_soldier_ptr = new_soldier.get();
-  new_soldier->bindHover([=](sf::Event) {
-    if (!new_soldier_ptr->isFocused()) {
-      new_soldier_ptr->setColor({255, 255, 255, 192});
-    }
-  });
-  new_soldier->bindLeave([=](sf::Event) {
-    if (!new_soldier_ptr->isFocused()) {
-      new_soldier_ptr->setColor({255, 255, 255, 255});
-    }
-  });
-  new_soldier->bindClick([=](sf::Event) {
-    // dynamic_cast<NormalSoldier*>(new_soldier_ptr)
-    //     ->addGranuleAttack(new_soldier_ptr->getPosition(),
-    //       AttackInfo(ElementumType::Hydro, 2.0, 10.0)
-    //     );
-    registerGranuleAttack(
-        new_soldier_ptr,
-        GranuleAttack({new_soldier_ptr->getPosition().x +
-                           new_soldier_ptr->getSize().x / 2,
-                       new_soldier_ptr->getPosition().y +
-                           new_soldier_ptr->getSize().y / 2},
-                      5.0f, new_soldier_ptr->getDirection(),
-                      AttackInfo(new_soldier_ptr->getElementumType(), 2.0, 10.0)));
-  });
-  new_soldier->bindFocus([=](sf::Event) {
-    new_soldier_ptr->setColor({255, 0, 200, 255});
-    focused_object_ = new_soldier_ptr;
-    focused_object_type_ = ObjectType::OwnSoldier;
-  });
-  new_soldier->bindUnfocus([=](sf::Event) {
-    new_soldier_ptr->setColor({255, 255, 255, 255});
-  });
-  soldiers_.push_back(std::move(new_soldier));
+void MainScene::enemyBaseMakeDecision() {
+  if (enemies_.size() < 10) {
+    sendMessage(Message::GenerateEnemySoldier);
+  }
 }
 
 void MainScene::initUi() {
@@ -484,7 +547,8 @@ void MainScene::initInfoHint() {
   info_bar_->setSize(Vector2f{168.f, 32.f});
   info_bar_->setPosition(
       Vector2f(10.f, window_.getSize().y - info_bar_->getSize().y - 10.f));
-  setMoney(150);
+  setMoney(150, Camp::Own);
+  setMoney(150, Camp::Enemy);
 
   // skill bar
   skill_bar_ = std::make_unique<SkillBar<3>>();
@@ -511,9 +575,31 @@ void MainScene::initElementumPanel() {
   setOwnCurrentElementumType(ElementumType::Cyro);
 }
 
-void MainScene::setMoney(int money) {
-  money_ = money;
-  info_bar_->setMoney(money);
+void MainScene::setMoney(int money, Camp camp) {
+  if (camp == Camp::Own) {
+    own_money_ = money;
+    info_bar_->setMoney(money);
+  } else {
+    enemy_money_ = money;
+  }
+}
+
+void MainScene::increaseMoney(int money, Camp camp) {
+  if (camp == Camp::Own) {
+    own_money_ += money;
+    info_bar_->setMoney(own_money_);
+  } else {
+    enemy_money_ += money;
+  }
+}
+
+void MainScene::decreaseMoney(int money, Camp camp) {
+  if (camp == Camp::Own) {
+    own_money_ -= money;
+    info_bar_->setMoney(own_money_);
+  } else {
+    enemy_money_ -= money;
+  }
 }
 
 sf::Vector2f MainScene::coordinateToPixel(const Vector2i& coordinate) {
@@ -551,5 +637,79 @@ void MainScene::initButton() {
       // sendMessage(Message::Attack);
     }
   });
+  attack_button_.setPosition({230, 560});
+  attack_button_.setOutlineColor(sf::Color::White);
+  // attack_button_.setOutlineThickness(2.f);
+  attack_button_texture_.loadFromFile("assets/res/attack_button.png");
+  attack_button_texture_.setSmooth(true);
+  attack_button_.setTexture(&attack_button_texture_);
+  attack_button_.setFillColor(YukiColor::Transparent_50);
 
+  registerTouchableObject(&attack_button_);
+  attack_button_.bindLeave(
+      [&](Event) { attack_button_.setFillColor(YukiColor::Transparent_50); });
+  attack_button_.bindHover(
+      [&](Event) { attack_button_.setFillColor(YukiColor::Normal); });
+
+  attack_button_.bindClick([&](Event) {
+    if (focused_object_type_ == ObjectType::OwnSoldier) {
+      Soldier* focused_soldier = dynamic_cast<Soldier*>(focused_object_);
+      registerGranuleAttack(
+          focused_soldier,
+          GranuleAttack(
+              {focused_soldier->getPosition().x +
+                   focused_soldier->getSize().x / 2,
+               focused_soldier->getPosition().y +
+                   focused_soldier->getSize().y / 2},
+              5.0f, focused_soldier->getDirection(),
+              AttackInfo(focused_soldier->getElementumType(), 2.0, 10.0)));
+    }
+  });
+}
+
+void MainScene::implMsgGenerateOwnSoldier() {
+  if (!own_base_->canGenerateSoldier()) return;
+
+  auto new_soldier = generateSoldier("NormalSoldier", Camp::Own);
+  new_soldier->setElementumType(own_current_elementum_type_);
+  new_soldier->setPosition(coordinateToPixel(kOwnSoldierBirthCoordinate));
+  auto ptr = new_soldier.get();
+
+  new_soldier->bindHover([=](sf::Event) {
+    if (!ptr->isFocused()) {
+      ptr->setColor({255, 255, 255, 192});
+    }
+  });
+  new_soldier->bindLeave([=](sf::Event) {
+    if (!ptr->isFocused()) {
+      ptr->setColor({255, 255, 255, 255});
+    }
+  });
+  new_soldier->bindClick([=](sf::Event) {
+    registerGranuleAttack(
+        ptr, GranuleAttack({ptr->getPosition().x + ptr->getSize().x / 2,
+                            ptr->getPosition().y + ptr->getSize().y / 2},
+                           5.0f, ptr->getDirection(),
+                           AttackInfo(ptr->getElementumType(), 2.0, 2.0)));
+  });
+  new_soldier->bindFocus([=](sf::Event) {
+    ptr->setColor({255, 0, 200, 255});
+    focused_object_ = ptr;
+    focused_object_type_ = ObjectType::OwnSoldier;
+  });
+  new_soldier->bindUnfocus([=](sf::Event) {
+    ptr->setColor({255, 255, 255, 255});
+  });
+
+  soldiers_.push_back(std::move(new_soldier));
+}
+
+void MainScene::implMsgGenerateEnemySoldier() {
+  if (!enemy_base_->canGenerateSoldier()) {
+    return;
+  }
+  auto new_soldier = generateSoldier("NormalSoldier", Camp::Enemy);
+  new_soldier->setElementumType(own_current_elementum_type_);
+  new_soldier->setPosition(coordinateToPixel(kEnemySoldierBirthCoordinate));
+  enemies_.push_back(std::move(new_soldier));
 }

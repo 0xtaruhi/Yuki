@@ -12,12 +12,12 @@
 #include "StatusBar.hpp"
 #include "YukiScene.hpp"
 
-
 namespace yuki {
 class Soldier : public sf::Drawable, public Focusable {
  public:
-  Soldier(Camp camp = Camp::Own) : camp_(camp) {
-    health_bar_ = getHealthBar();
+  Soldier(Camp camp = Camp::Own)
+      : camp_(camp), adhesion_elementum_(Elementum(ElementumType::None, 0.0f)) {
+    health_bar_ = getHealthBar(camp);
     setOrigin({sprite_.getLocalBounds().width / 2.f,
                sprite_.getLocalBounds().height});
   }
@@ -63,7 +63,7 @@ class Soldier : public sf::Drawable, public Focusable {
   void setHealth(const float current_health) {
     health_bar_.setValue(current_health);
   }
-  constexpr auto getHealth() const { return health_bar_.getValue(); }
+  const auto getHealth() const { return health_bar_.getValue(); }
   void increaseHealth(const float health) { health_bar_.increase(health); }
   void decreaseHealth(const float health) { health_bar_.decrease(health); }
 
@@ -89,6 +89,17 @@ class Soldier : public sf::Drawable, public Focusable {
   }
   constexpr auto getElementumType() const { return elementum_.type; }
 
+  constexpr auto getCamp() const { return camp_; }
+
+  void setAdhesionElementum(const Elementum& elementum) {
+    adhesion_elementum_ = elementum;
+  }
+  const auto& getAdhesionElementum() const { return adhesion_elementum_; }
+
+  void getAttacked(const BasicAttack& attack);
+
+  constexpr auto isFreezed() const { return is_freeze_; }
+
  protected:
   // sf::Sprite sprite_;
   sf::Sprite sprite_;
@@ -101,7 +112,11 @@ class Soldier : public sf::Drawable, public Focusable {
   Direction direction_ = Direction::Down;
   float speed_ = 0.0f;
   Elementum elementum_ = Elementum(yuki::ElementumType::None, 0.0f);
+
+  Elementum adhesion_elementum_ = Elementum(yuki::ElementumType::None, 0.0f);
   StatusBar health_bar_;
+  sf::Clock freeze_clock_;
+  bool is_freeze_ = false;
 
   FloatingBubble floating_bubble_;
   bool floating_bubble_visible_;
