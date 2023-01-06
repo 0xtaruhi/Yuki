@@ -79,6 +79,7 @@ class Soldier : public sf::Drawable, public Focusable {
   constexpr auto isFloatingBubbleVisible() const {
     return floating_bubble_visible_;
   }
+  void walk();
 
   auto& getFloatingBubble() { return floating_bubble_; }
   const auto& getFloatingBubble() const { return floating_bubble_; }
@@ -144,6 +145,13 @@ class NormalSoldier : public Soldier {
   std::unique_ptr<BasicAttack> getDefaultAttack() override { return getDefaultGranuleAttack(); }
   std::unique_ptr<GranuleAttack> getDefaultGranuleAttack();
 
+  void setGranuleAttackCD(const sf::Time& cd) { granule_attack_cd_ = cd; }
+  const auto getGranuleAttackCD() const { return granule_attack_cd_; }
+  bool canGranuleAttack() const {
+    return granule_attack_clock_.getElapsedTime() >= granule_attack_cd_;
+  }
+  void resetGranuleAttackClock() { granule_attack_clock_.restart(); }
+
  private:
   sf::Texture all_textures_;
 
@@ -152,6 +160,9 @@ class NormalSoldier : public Soldier {
   int current_frame_;
   int previous_frame_;
   int max_frame_;
+
+  sf::Time granule_attack_cd_ = sf::seconds(0.5f);
+  sf::Clock granule_attack_clock_;
 
   // FloatingBubble floating_bubble_;
 };

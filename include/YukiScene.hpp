@@ -31,6 +31,7 @@ class YukiScene {
  protected:
   yuki::MouseEventProcessEngine mouse_event_engine_;
   Notify notify_;
+  int ret_code_;
 
   void registerTouchableObject(Touchable* object) {
     mouse_event_engine_.registerTouchableObject(object);
@@ -38,6 +39,8 @@ class YukiScene {
   void unregisterTouchableObject(Touchable* object) {
     mouse_event_engine_.unregisterTouchableObject(object);
   }
+
+  void setReturnCode(int ret_code) { ret_code_ = ret_code; }
 
   sf::RenderWindow& window_;
   virtual void processEvent(sf::Event event);

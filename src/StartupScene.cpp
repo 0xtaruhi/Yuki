@@ -47,6 +47,7 @@ void StartupScene::initUi() {
   btn_start_.bindRelease([this](sf::Event) {
     btn_start_.setTextFillColor(Color::Black);
     notify_ = Notify::End;
+    setReturnCode(1);
   });
   btn_start_.bindHover([this](sf::Event) { btn_start_.setFillColor(Color::Cyan); });
   btn_start_.bindLeave([this](sf::Event) { btn_start_.setFillColor(Color::White); });

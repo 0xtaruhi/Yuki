@@ -6,14 +6,13 @@ using namespace sf;
 YukiScene::~YukiScene() {}
 
 int YukiScene::show() {
-  int ret_code = 0;
+  notify_ = Notify::None;
   while (window_.isOpen()) {
     sf::Event event;
     while (window_.pollEvent(event)) {
       processEvent(event);
     }
     if (notify_ == Notify::End) {
-      ret_code = 1;
       break;
     }
     notify_ = Notify::None;
@@ -22,7 +21,7 @@ int YukiScene::show() {
     draw();
     window_.display();
   }
-  return ret_code;
+  return ret_code_;
 }
 
 void YukiScene::processEvent(sf::Event event) {

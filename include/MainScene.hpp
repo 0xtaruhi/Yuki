@@ -26,6 +26,8 @@ class MainScene : public YukiScene {
     GenerateEnemySoldier,
     OwnBaseLevelUp,
     FocusedObjectChanged,
+    OwnWin,
+    EnemyWin
   };
 
   enum class ObjectType {
@@ -33,6 +35,7 @@ class MainScene : public YukiScene {
     EnemySoldier,
     OwnBase,
     EnemyBase,
+    None
   };
 
  public:
@@ -114,6 +117,8 @@ class MainScene : public YukiScene {
 
   void implMsgGenerateOwnSoldier();
   void implMsgGenerateEnemySoldier();
+
+  void normalSoldierAttack(NormalSoldier* attacker);
 
 #ifdef YUKI_DEBUG
   sf::Text debug_text_;

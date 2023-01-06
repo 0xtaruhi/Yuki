@@ -4,6 +4,7 @@
 #include "Basic.hpp"
 #include "MainScene.hpp"
 #include "StartupScene.hpp"
+#include "ResultScene.hpp"
 
 using namespace yuki;
 
@@ -38,9 +39,12 @@ int main() {
     main_bgm.openFromFile("assets/music/main_bgm1.ogg");
     main_bgm.play();
     auto main_scene = std::make_unique<MainScene>(window);
-    main_scene->show();
+    scene_ret = main_scene->show();
     main_bgm.stop();
   }
+
+  auto result_scene = std::make_unique<ResultScene>(window, scene_ret == 1);
+  result_scene->show();
 
   return 0;
 }

@@ -18,11 +18,13 @@ bool Soldier::inRange(const Vector2f& target) const {
 }
 
 void Soldier::update() {
-  if (is_moving_) {
+  walk();
+}
+
+void Soldier::walk() {
+  if (is_moving_ && !is_freeze_) {
     sprite_.move(getVectorSpeed(direction_, speed_));
   }
-  // health_bar_.setPosition(
-  //     {sprite_.getPosition().x, sprite_.getPosition().y - 15});
   health_bar_.setPosition({sprite_.getPosition().x + health_bar_offset_.x,
                            sprite_.getPosition().y + health_bar_offset_.y});
 }
@@ -78,7 +80,7 @@ void NormalSoldier::update() {
       direct_int = 0;
       break;
   }
-  if (clock_.getElapsedTime().asSeconds() > 1.f) {
+  if (clock_.getElapsedTime().asMilliseconds() > 100) {
     clock_.restart();
     if (is_moving_ == false) {
       sprite_.setTextureRect(sf::IntRect(42, direct_int * 42, 42, 42));

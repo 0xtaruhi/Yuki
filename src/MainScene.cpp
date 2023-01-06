@@ -41,6 +41,17 @@ int MainScene::show() { return YukiScene::show(); }
 
 void MainScene::processEvent(sf::Event event) {
   YukiScene::processEvent(event);
+  if (event.type == sf::Event::KeyPressed) {
+    if (event.key.code == sf::Keyboard::G) {
+      sendMessage(Message::GenerateOwnSoldier);
+    } else if (event.key.code == sf::Keyboard::D) {
+      setOwnCurrentElementumType(ElementumType::Pyro);
+    } else if (event.key.code == sf::Keyboard::S) {
+      setOwnCurrentElementumType(ElementumType::Hydro);
+    } else if (event.key.code == sf::Keyboard::A) {
+      setOwnCurrentElementumType(ElementumType::Cyro);
+    }
+  }
 
 #ifdef YUKI_DEBUG
   if (event.type == sf::Event::MouseButtonPressed) {
@@ -91,9 +102,6 @@ void MainScene::updateInfo() {
   enemyBaseMakeDecision();
   for (auto& soldier : soldiers_) {
     soldier->update();
-    if (soldier->getHealth() > 50.f) {
-      soldier->decreaseHealth(1.f);
-    }
   }
   for (auto& enemy : enemies_) {
     enemy->update();
@@ -114,6 +122,12 @@ void MainScene::updateInfo() {
       if (own_base_->getLevel() < 3) {
         own_base_->levelUp();
       }
+    } else if (message == Message::OwnWin) {
+      notify_ = Notify::End;
+      setReturnCode(1);
+    } else if (message == Message::EnemyWin) {
+      notify_ = Notify::End;
+      setReturnCode(2);
     }
   }
   updateAttacks();
@@ -148,6 +162,11 @@ void MainScene::eraseDeadSoldier() {
     if (isDead(*iter)) {
       auto ptr = iter->get();
       unregisterTouchableObject(ptr);
+      if (ptr == focused_object_) {
+        focused_object_ = nullptr;
+        focused_object_type_ = ObjectType::None;
+      }
+
       iter = soldiers_.erase(iter);
       increaseEnemyMoney(75);
     } else {
@@ -223,7 +242,7 @@ void MainScene::soldierUpdatePosition() {
       else if (walkable(getDownCoordinate(coordinate)))
         soldier->setDirection(Direction::Down);
       else
-        soldier->setSpeed(0.f);
+        soldier->setMoving(false);
     } else {
       if (walkable(getLeftCoordinate(coordinate)))
         soldier->setDirection(Direction::Left);
@@ -232,7 +251,7 @@ void MainScene::soldierUpdatePosition() {
       else if (walkable(getDownCoordinate(coordinate)))
         soldier->setDirection(Direction::Down);
       else
-        soldier->setSpeed(0.f);
+        soldier->setMoving(false);
     }
   };
 
@@ -250,21 +269,18 @@ void MainScene::soldierUpdatePosition() {
     auto& soldiers = *soldiers_ptr;
     auto& enemies = *enemies_ptr;
 
-    std::for_each(soldiers.begin(), soldiers.end(), [&](auto& soldier) {
+    for (auto soldier_iter = soldiers.begin(); soldier_iter != soldiers.end();
+         soldier_iter++) {
+      auto soldier = soldier_iter->get();
       auto coordinate = pixelToCoordinate(soldier->getPosition());
       coordinate.x++;
       coordinate.y++;
 
-      if (!soldier->isFreezed()) {
-        soldier->setMoving(true);
-      } else {
-        soldier->setMoving(false);
-      }
+      bool should_attack = false;
 
-      auto distance = distanceToEnemyBase(soldier.get());
+      auto distance = distanceToEnemyBase(soldier);
       if (distance < 2.f) {
-        soldier->setMoving(false);
-        return;
+        should_attack = true;
       }
 
       for (auto iter = enemies.begin(); iter != enemies.end(); iter++) {
@@ -272,9 +288,16 @@ void MainScene::soldierUpdatePosition() {
         if (isOppositeDirection(soldier->getDirection(),
                                 enemy->getDirection()) &&
             distanceBetweenSoldier(*soldier, *enemy) < 3.f) {
-          soldier->setMoving(false);
-          return;
+          should_attack = true;
+          break;
         }
+      }
+      if (should_attack) {
+        soldier->setMoving(false);
+        normalSoldierAttack(dynamic_cast<NormalSoldier*>(soldier));
+        continue;
+      } else {
+        soldier->setMoving(true);
       }
 
       auto next_coordinate(coordinate);
@@ -296,10 +319,10 @@ void MainScene::soldierUpdatePosition() {
       }
 
       if (!walkable(next_coordinate)) {
-        turnDirection(soldier.get());
-        return;
+        turnDirection(soldier);
+        continue;
       }
-    });
+    };
   };
 
   updateSoldierPostionByCamp(Camp::Own);
@@ -334,7 +357,8 @@ void MainScene::updateAttacks() {
     return nullptr;
   };
 
-  auto granuleHitBase = [=](const GranuleAttackWithSenderInfo& granule_attack) -> MilitaryBase* {
+  auto granuleHitBase =
+      [=](const GranuleAttackWithSenderInfo& granule_attack) -> MilitaryBase* {
     const auto& granule_attack_pos = granule_attack.second.getPosition();
     const auto& attack_sender_camp = granule_attack.first->getCamp();
     if (attack_sender_camp == Camp::Own) {
@@ -377,6 +401,11 @@ void MainScene::updateAttacks() {
     }
   }
 
+  if (own_base_->getCurrentHealth() <= 0) {
+    sendMessage(Message::EnemyWin);
+  } else if (enemy_base_->getCurrentHealth() <= 0) {
+    sendMessage(Message::OwnWin);
+  }
 }
 
 void MainScene::enemyBaseMakeDecision() {
@@ -685,15 +714,7 @@ void MainScene::initButton() {
   attack_button_.bindClick([&](Event) {
     if (focused_object_type_ == ObjectType::OwnSoldier) {
       Soldier* focused_soldier = dynamic_cast<Soldier*>(focused_object_);
-      registerGranuleAttack(
-          focused_soldier,
-          GranuleAttack(
-              {focused_soldier->getPosition().x +
-                   focused_soldier->getSize().x / 2,
-               focused_soldier->getPosition().y +
-                   focused_soldier->getSize().y / 2},
-              5.0f, focused_soldier->getDirection(),
-              AttackInfo(focused_soldier->getElementumType(), 2.0, 10.0)));
+      normalSoldierAttack(dynamic_cast<NormalSoldier*>(focused_soldier));
     }
   });
 }
@@ -720,11 +741,7 @@ void MainScene::implMsgGenerateOwnSoldier() {
     }
   });
   new_soldier->bindClick([=](sf::Event) {
-    registerGranuleAttack(
-        ptr, GranuleAttack({ptr->getPosition().x + ptr->getSize().x / 2,
-                            ptr->getPosition().y + ptr->getSize().y / 2},
-                           5.0f, ptr->getDirection(),
-                           AttackInfo(ptr->getElementumType(), 2.0, 2.0)));
+    normalSoldierAttack(dynamic_cast<NormalSoldier*>(ptr));
   });
   new_soldier->bindFocus([=](sf::Event) {
     auto color = ptr->getColor();
@@ -767,4 +784,17 @@ void MainScene::implMsgGenerateEnemySoldier() {
   new_soldier->setElementumType(own_current_elementum_type_);
   new_soldier->setPosition(coordinateToPixel(kEnemySoldierBirthCoordinate));
   enemies_.push_back(std::move(new_soldier));
+}
+
+void MainScene::normalSoldierAttack(NormalSoldier* attacker) {
+  if (attacker == nullptr || !attacker->canGranuleAttack()) {
+    return;
+  }
+  attacker->resetGranuleAttackClock();
+  registerGranuleAttack(
+      attacker,
+      GranuleAttack({attacker->getPosition().x + attacker->getSize().x / 2,
+                     attacker->getPosition().y + attacker->getSize().y / 2},
+                    5.0f, attacker->getDirection(),
+                    AttackInfo(attacker->getElementumType(), 2.0, 2.0)));
 }
