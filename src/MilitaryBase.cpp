@@ -12,25 +12,34 @@ MilitaryBase::MilitaryBase(Camp camp)
   initTexture();
   bindHover([this](sf::Event) {
     floating_bubble_visible_ = true;
-    health_bar_visible_ = true;
+    // health_bar_visible_ = true;
   });
   bindLeave([this](sf::Event) {
     floating_bubble_visible_ = false;
-    health_bar_visible_ = false;
+    // health_bar_visible_ = false;
   });
 
   auto fb_pos = Vector2f({getPosition().x + getGlobalBounds().width / 2,
                           getPosition().y + getGlobalBounds().height / 2});
   floating_bubble_.setPosition(fb_pos);
 
-  health_bar_ = getHealthBar(
-      {
-          this->getGlobalBounds().width,
-          20.f,
-      },
-      camp);
-  health_bar_.setPosition(
-      {this->getPosition().x, this->getPosition().y - 30.f});
+  // health_bar_ = getHealthBar(
+  //     {
+  //         this->getGlobalBounds().width,
+  //         5.f,
+  //     },
+  //     camp);
+  health_bar_ =
+      StatusBar({this->getGlobalBounds().width, 3.f},
+                {getPosition().x, getPosition().y + health_bar_offset_y});
+  health_bar_.setBackgroudColor(Color::Black);
+  health_bar_.setOutlineColor(Color::Black);
+  health_bar_.setOutlineThickness(2.f);
+  if (camp == Camp::Own) {
+    health_bar_.setFilledColor(Color::Green);
+  } else {
+    health_bar_.setFilledColor(Color::Red);
+  }
 }
 
 void MilitaryBase::initTexture() { updateTexture(); }
@@ -58,9 +67,7 @@ bool MilitaryBase::inRange(const sf::Vector2f& position) const {
 void MilitaryBase::draw(sf::RenderTarget& target,
                         sf::RenderStates states) const {
   TouchableSprite::draw(target, states);
-  if (health_bar_visible_) {
-    target.draw(health_bar_, states);
-  }
+  target.draw(health_bar_, states);
   if (floating_bubble_visible_) {
     floating_bubble_.draw(target, states);
   }

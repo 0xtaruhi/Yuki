@@ -384,8 +384,8 @@ void MainScene::initMap() {
 }
 
 void MainScene::initBuildings() {
-  own_base_ = std::make_unique<MilitaryBase>();
-  enemy_base_ = std::make_unique<MilitaryBase>();
+  own_base_ = std::make_unique<MilitaryBase>(Camp::Own);
+  enemy_base_ = std::make_unique<MilitaryBase>(Camp::Enemy);
 
   own_base_->setPosition(coordinateToPixel({2, 14}));
   enemy_base_->setPosition(coordinateToPixel({24, 14}));

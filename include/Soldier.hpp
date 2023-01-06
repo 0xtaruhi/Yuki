@@ -61,7 +61,7 @@ class Soldier : public sf::Drawable, public Focusable {
   void setHealth(const float current_health) {
     health_bar_.setValue(current_health);
   }
-  constexpr auto getHealth() const { return health_bar_.getCurrentValue(); }
+  constexpr auto getHealth() const { return health_bar_.getValue(); }
   void increaseHealth(const float health) { health_bar_.increase(health); }
   void decreaseHealth(const float health) { health_bar_.decrease(health); }
 
