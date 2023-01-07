@@ -571,6 +571,7 @@ void MainScene::initBuildings() {
   auto& own_base_fb_items = own_base_fb.getBubbleItems();
 
   own_base_fb_items[0]->loadTexture("assets/res/update_base.jpg");
+  own_base_fb_items[1]->loadTexture("assets/res/generate_soldier.jpg");
 
   for (const auto& item : own_base_fb_items) {
     auto item_ptr = item.get();
